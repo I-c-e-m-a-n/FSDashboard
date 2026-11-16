@@ -1,27 +1,24 @@
-export const categories = [
-  "House visits",
-  "Case management",
-  "Infrastructure",
-  "Engagements",
-] as const;
-export type Category = (typeof categories)[number];
-export type Sector = "North" | "Central" | "South";
-export interface RecordItem {
-  id: string;
-  title: string;
-  location: string;
-  sector: Sector;
-  category: Category;
-  lat: number;
-  lng: number;
-  date: string;
-  due: string;
-  status: "Open" | "In progress" | "Completed";
-  priority: "Urgent" | "Routine";
-  units: number;
-  detail: string;
-  owner: string;
-}
+import {
+  categories,
+  sectors,
+  type Category,
+  type Sector,
+  type Location,
+  type Team,
+  type Operation,
+  type RecordItem,
+  type RecordLink,
+} from "./model";
+export { categories, sectors } from "./model";
+export type {
+  Category,
+  Sector,
+  Location,
+  Team,
+  Operation,
+  RecordItem,
+  RecordLink,
+} from "./model";
 // Entirely fictional operations. Coordinates are approximate, not official boundaries or addresses.
 const rows: [
   Category,
@@ -262,22 +259,109 @@ const rows: [
     "Thirty-eight participants attended the sample community workshop.",
   ],
 ];
-export const records: RecordItem[] = rows.map((r, i) => ({
-  id: `FS-${String(i + 1).padStart(3, "0")}`,
-  category: r[0],
-  title: r[1],
-  location: r[2],
+// Fixture inputs are converted once into normalized entities. Display fields are joined below.
+export const locations: Location[] = rows.map((r, i) => ({
+  id: `LOC-${String(i + 1).padStart(3, "0")}`,
+  label: r[2],
   sector: r[3],
   lat: r[4],
   lng: r[5],
-  date: r[6],
-  due: r[7],
-  status: r[8],
-  priority: r[9],
-  units: r[10],
-  detail: r[11],
-  owner: `${r[3]} coordination team`,
 }));
+export const teams: Team[] = sectors.map((sector) => ({
+  id: `TEAM-${sector.toUpperCase()}`,
+  name: `${sector} coordination team`,
+  sector,
+}));
+export const operations: Operation[] = rows.map((r, i) => {
+  const base = {
+    id: `FS-${String(i + 1).padStart(3, "0")}`,
+    title: r[1],
+    locationId: locations[i].id,
+    teamId: `TEAM-${r[3].toUpperCase()}`,
+    date: r[6],
+    due: r[7],
+    status: r[8],
+    priority: r[9],
+    detail: r[11],
+  };
+  if (r[0] === "House visits")
+    return {
+      ...base,
+      category: r[0],
+      measure: { kind: "householdContacts", count: r[10] },
+    };
+  if (r[0] === "Engagements")
+    return {
+      ...base,
+      category: r[0],
+      measure: { kind: "participations", count: r[10] },
+    };
+  return { ...base, category: r[0], measure: null };
+});
+export const links: RecordLink[] = [
+  {
+    id: "LINK-01",
+    fromId: "FS-012",
+    toId: "FS-002",
+    kind: "Support referral",
+    note: "Support follow-up identified during the central outreach round.",
+  },
+  {
+    id: "LINK-02",
+    fromId: "FS-005",
+    toId: "FS-001",
+    kind: "Raised matter",
+    note: "Estate feedback from the weekend round was referred to the north team.",
+  },
+  {
+    id: "LINK-03",
+    fromId: "FS-009",
+    toId: "FS-007",
+    kind: "Raised matter",
+    note: "Playground upkeep feedback recorded during evening outreach.",
+  },
+  {
+    id: "LINK-04",
+    fromId: "FS-011",
+    toId: "FS-008",
+    kind: "Support referral",
+    note: "A community referral originated from the gardening session.",
+  },
+  {
+    id: "LINK-05",
+    fromId: "FS-015",
+    toId: "FS-010",
+    kind: "Support referral",
+    note: "Service guidance followed a request from the north outreach round.",
+  },
+  {
+    id: "LINK-06",
+    fromId: "FS-016",
+    toId: "FS-014",
+    kind: "Support referral",
+    note: "A support enquiry followed the active ageing workshop.",
+  },
+  {
+    id: "LINK-07",
+    fromId: "FS-006",
+    toId: "FS-003",
+    kind: "Raised matter",
+    note: "Walkway drainage feedback was shared at the coffee morning.",
+  },
+];
+export const records: RecordItem[] = operations.map((operation) => {
+  const location = locations.find((l) => l.id === operation.locationId)!;
+  const team = teams.find((t) => t.id === operation.teamId)!;
+  return {
+    ...operation,
+    location: location.label,
+    sector: location.sector,
+    lat: location.lat,
+    lng: location.lng,
+    owner: team.name,
+    units: operation.measure?.count ?? 1,
+  };
+});
 export const snapshot = "2026-11-16";
 export const colors: Record<Category, string> = {
   "House visits": "#356DB5",
@@ -298,6 +382,7 @@ export function filterRecords(filters: Filters) {
     (r) =>
       (filters.sector === "All areas" || r.sector === filters.sector) &&
       r.date >= cutoff.toISOString().slice(0, 10) &&
+      r.date <= snapshot &&
       filters.categories.includes(r.category) &&
       `${r.title} ${r.location} ${r.id}`
         .toLowerCase()

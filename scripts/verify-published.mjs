@@ -29,6 +29,17 @@ try {
     path: "published-evidence/mobile.png",
     fullPage: true,
   });
+  await page.goto(`${url}#explorer`);
+  await page.getByRole("heading", { name: "Data explorer." }).waitFor();
+  await page.screenshot({
+    path: "published-evidence/explorer-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.screenshot({
+    path: "published-evidence/explorer-desktop.png",
+    fullPage: true,
+  });
   console.log(
     `Verified HTTP 200, rendered homepage and live map tiles at ${url}`,
   );
