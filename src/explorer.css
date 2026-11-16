@@ -754,3 +754,7 @@ button:disabled {
 .connection-card > button > span {
   color: #405e83 !important;
 }
+.table-scroll,
+.matrix-scroll {
+  position: relative;
+}

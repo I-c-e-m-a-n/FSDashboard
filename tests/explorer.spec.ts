@@ -65,6 +65,11 @@ test("explorer filters, pagination, links, export and shared navigation", async 
 test("explorer accessible views and empty state", async ({ page }) => {
   const { default: AxeBuilder } = await import("@axe-core/playwright");
   await page.goto("#explorer");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
   for (const name of ["Records", "Connections 7", "Data model"]) {
     await page.getByRole("button", { name, exact: true }).click();
     const r = await new AxeBuilder({ page })
