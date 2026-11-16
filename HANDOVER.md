@@ -17,11 +17,15 @@ Data and selection logic are isolated in `src/data.ts`; map lifecycle is isolate
 
 ## Deployment status
 
-GitHub Actions workflow prepared in `.github/workflows/deploy.yml`: lockfile installation → build → browser tests → Pages artifact → deployment on `main`. Public release verification is **pending**. The running environment returns proxy HTTP 403 for `api.github.com` and `i-c-e-m-a-n.github.io`; these are network failures, not evidence of application or GitHub authentication failure.
+Implementation and automation pushed to `main` (application commit `b1b2cc7`, publication-verification commit `f48d416`). GitHub Actions workflow in `.github/workflows/deploy.yml`: lockfile installation → build → browser tests → Pages artifact → deployment → public-URL browser suite and live-tile screenshot checks.
+
+[Actions run #1](https://github.com/I-c-e-m-a-n/FSDashboard/actions/runs/43829407413) successfully completed the build/test job and uploaded the Pages artifact. Deployment failed at `actions/configure-pages`: **Get Pages site failed / Not Found**. GitHub Pages must be enabled and configured to use GitHub Actions. The action documentation confirms its automatic enablement requires a token other than `GITHUB_TOKEN`; no additional credential has been requested or fabricated.
+
+Public release verification is **pending**, and no successful publication is claimed. The running environment returns proxy HTTP 403 for `api.github.com` and `i-c-e-m-a-n.github.io`; these are network failures, not evidence of application or GitHub authentication failure.
 
 Network additions have been saved to the environment configuration draft for `api.github.com`, `i-c-e-m-a-n.github.io`, and `tile.openstreetmap.org`. Reusable installation and startup instructions have also been saved. Draft saves do not apply or publish environment settings.
 
-After these changes are applied, confirm Pages uses GitHub Actions, inspect the workflow result, then run the documented published-URL browser suite and confirm real street tiles load. Do not treat an uploaded workflow or artifact as a verified publication.
+Required external action: in repository Settings → Pages → Build and deployment → Source, select **GitHub Actions**. Apply the saved cloud network additions to allow this agent to manage and verify publication. Then rerun the latest failed workflow (or dispatch it); the new `verify-publication` job exercises the public URL and live tiles and saves screenshot evidence. Do not treat an uploaded workflow or artifact as a verified publication.
 
 ## Remaining limitations
 
