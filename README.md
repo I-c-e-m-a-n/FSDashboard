@@ -46,7 +46,7 @@ PLAYWRIGHT_BASE_URL=https://i-c-e-m-a-n.github.io/FSDashboard/ npm test
 
 ## Deployment
 
-`.github/workflows/deploy.yml` installs the lockfile, type-checks, builds, runs browser tests, and uploads the static artifact. Successful pushes to `main` deploy with `actions/deploy-pages`, then rerun the browser suite against the public URL and verify HTTP 200, rendering and live map tiles, saving screenshots as workflow artifacts; pull requests validate without deploying. Repository **Settings → Pages → Source** must be **GitHub Actions**. Deployment needs repository Pages enablement and the workflow's `pages: write` and `id-token: write` permissions. No application secrets are needed.
+`.github/workflows/deploy.yml` installs the lockfile, type-checks, builds, runs browser tests, and uploads the static artifact. Successful pushes to `main` deploy with `actions/deploy-pages`, then rerun the browser suite against the public URL and verify HTTP 200, rendering and live map tiles, saving screenshots as workflow artifacts; pull requests validate without deploying. The deployment job sets Pages to **GitHub Actions** when permitted. Keep **Settings → Pages → Source** set to **GitHub Actions**: branch publishing serves the uncompiled development entry and produces a blank page. The build checks compiled script paths before uploading `dist`. Deployment needs repository Pages enablement and the workflow's `pages: write` and `id-token: write` permissions. No application secrets are needed.
 
 Expected site: https://i-c-e-m-a-n.github.io/FSDashboard/
 
