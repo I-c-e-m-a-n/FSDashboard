@@ -381,15 +381,16 @@ export function filterRecords(filters: Filters) {
   return records.filter(
     (r) =>
       (filters.sector === "All areas" || r.sector === filters.sector) &&
-      r.date >= cutoff.toISOString().slice(0, 10) &&
-      r.date <= snapshot &&
+      (filters.days === 0 ||
+        (r.date >= cutoff.toISOString().slice(0, 10) && r.date <= snapshot)) &&
       filters.categories.includes(r.category) &&
       `${r.title} ${r.location} ${r.id}`
         .toLowerCase()
         .includes(filters.query.trim().toLowerCase()),
   );
 }
-export const isOutstanding = (r: RecordItem) => r.status !== "Completed";
+export const isOutstanding = (r: RecordItem) =>
+  r.status !== "Completed" && r.status !== "Cancelled";
 export const isOverdue = (r: RecordItem) =>
   isOutstanding(r) && r.due < snapshot;
 export const formatDate = (date: string) =>

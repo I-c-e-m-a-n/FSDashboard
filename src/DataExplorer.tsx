@@ -1,3 +1,4 @@
+import { useOperationalRevision } from "./engagementStore";
 import { useMemo, useState } from "react";
 import {
   ArrowDown,
@@ -49,6 +50,7 @@ export default function DataExplorer({
   onChange: (change: Partial<Filters>) => void;
   onSelect: (record: RecordItem) => void;
 }) {
+  const revision = useOperationalRevision();
   const [view, setView] = useState<View>("records"),
     [status, setStatus] = useState("All statuses"),
     [priority, setPriority] = useState("All priorities"),
@@ -58,7 +60,7 @@ export default function DataExplorer({
     [exported, setExported] = useState(false);
   const scoped = useMemo(
     () => filterRecords(filters),
-    [filters.sector, filters.days, filters.query, filters.categories],
+    [filters.sector, filters.days, filters.query, filters.categories, revision],
   );
   const items = useMemo(
     () =>
@@ -222,6 +224,7 @@ export default function DataExplorer({
               value={filters.days}
               onChange={(e) => change({ days: Number(e.target.value) })}
             >
+              <option value={0}>All dates (including scheduled)</option>
               <option value={30}>Last 30 days</option>
               <option value={7}>Last 7 days</option>
             </select>
@@ -241,6 +244,7 @@ export default function DataExplorer({
                 "Open",
                 "In progress",
                 "Completed",
+                "Cancelled",
                 "Overdue",
               ].map((s) => (
                 <option key={s}>{s}</option>
@@ -604,7 +608,7 @@ export default function DataExplorer({
                 <div>
                   <div className="eyebrow">RECORDED ACTIVITY</div>
                   <h2>Four weeks in perspective</h2>
-                  <p>Weekly record counts · current selection</p>
+                  <p>Snapshot weeks · 19 Oct–15 Nov 2026</p>
                 </div>
               </div>
               <div className="explorer-weekly">

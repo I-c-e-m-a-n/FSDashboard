@@ -52,6 +52,7 @@ export default function MapView({
     items.forEach((r) => {
       const marker = L.marker([r.lat, r.lng], {
         title: r.title,
+        autoPanOnFocus: false,
         alt: r.title,
         icon: L.divIcon({
           className: "map-pin-wrap",
@@ -62,6 +63,10 @@ export default function MapView({
       });
       marker.on("click", () => onSelect(r));
       marker.addTo(layer.current!);
+      // Keep map-container focus from scrolling the page between pointer down/up.
+      // Marker keyboard navigation remains available through its normal tabindex.
+      const element = marker.getElement();
+      if (element) L.DomEvent.on(element, "mousedown", L.DomEvent.stop);
     });
     const target = items.find((r) => r.id === selected);
     if (target)

@@ -6,11 +6,11 @@ import {
   type RecordItem,
 } from "./data";
 export function summarize(items: RecordItem[]) {
-  const completed = items.filter((r) => !isOutstanding(r)).length;
+  const completed = items.filter((r) => r.status === "Completed").length;
   return {
     total: items.length,
     completed,
-    outstanding: items.length - completed,
+    outstanding: items.filter(isOutstanding).length,
     urgent: items.filter((r) => isOutstanding(r) && r.priority === "Urgent")
       .length,
     overdue: items.filter(isOverdue).length,

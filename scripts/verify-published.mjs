@@ -40,6 +40,17 @@ try {
     path: "published-evidence/explorer-desktop.png",
     fullPage: true,
   });
+  await page.goto(`${url}#engagements`);
+  await page.getByRole("heading", { name: "Engagement management." }).waitFor();
+  await page.screenshot({
+    path: "published-evidence/engagement-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "published-evidence/engagement-mobile.png",
+    fullPage: true,
+  });
   console.log(
     `Verified HTTP 200, rendered homepage and live map tiles at ${url}`,
   );

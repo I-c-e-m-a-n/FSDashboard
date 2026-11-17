@@ -26,7 +26,7 @@ interface OperationBase {
   teamId: string;
   date: string;
   due: string;
-  status: "Open" | "In progress" | "Completed";
+  status: "Open" | "In progress" | "Completed" | "Cancelled";
   priority: "Urgent" | "Routine";
   detail: string;
 }
@@ -46,7 +46,7 @@ export interface RecordLink {
   id: string;
   fromId: string;
   toId: string;
-  kind: "Raised matter" | "Support referral";
+  kind: "Raised matter" | "Support referral" | "Associated record";
   note: string;
 }
 /** Joined read model for UI compatibility. Units are category-specific, never summed across categories. */

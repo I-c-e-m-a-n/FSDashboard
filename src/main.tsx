@@ -1,3 +1,5 @@
+import EngagementManagement from "./EngagementManagement";
+import { useOperationalRevision } from "./engagementStore";
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/manrope";
 import React, {
@@ -54,13 +56,23 @@ import {
 import "./style.css";
 const icons = [Home, Users, Wrench, CalendarDays];
 function App() {
+  const revision = useOperationalRevision();
+  const backdropPointer = useRef(false);
   const [primary, setPrimary] = useState(
-    location.hash.startsWith("#explorer") ? "explorer" : "overview",
+    location.hash.startsWith("#engagements")
+      ? "engagements"
+      : location.hash.startsWith("#explorer")
+        ? "explorer"
+        : "overview",
   );
   useEffect(() => {
     const handler = () =>
       setPrimary(
-        location.hash.startsWith("#explorer") ? "explorer" : "overview",
+        location.hash.startsWith("#engagements")
+          ? "engagements"
+          : location.hash.startsWith("#explorer")
+            ? "explorer"
+            : "overview",
       );
     window.addEventListener("hashchange", handler);
     return () => window.removeEventListener("hashchange", handler);
@@ -79,7 +91,7 @@ function App() {
     helpDialog = useRef<HTMLDialogElement>(null);
   const items = useMemo(
     () => filterRecords({ sector, days, query, categories: active }),
-    [sector, days, query, active],
+    [sector, days, query, active, revision],
   );
   const choose = useCallback((r: RecordItem) => {
     setSelection(r);
@@ -181,6 +193,14 @@ function App() {
             <Layers size={19} />
             Data Explorer
           </a>
+          <a
+            className={primary === "engagements" ? "nav-active" : ""}
+            href="#engagements"
+            onClick={() => setNav(false)}
+          >
+            <CalendarDays size={19} />
+            Engagement Management
+          </a>
           <a href="#operations" onClick={() => setNav(false)}>
             <MapPinned size={19} />
             Operations map
@@ -242,7 +262,11 @@ function App() {
           <div className="breadcrumb">
             Workspace <ChevronRight size={14} />
             <strong>
-              {primary === "explorer" ? "Data Explorer" : "Overview"}
+              {primary === "engagements"
+                ? "Engagement Management"
+                : primary === "explorer"
+                  ? "Data Explorer"
+                  : "Overview"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -254,7 +278,9 @@ function App() {
           </div>
         </header>
         <main id="main">
-          {primary === "explorer" ? (
+          {primary === "engagements" ? (
+            <EngagementManagement />
+          ) : primary === "explorer" ? (
             <DataExplorer
               filters={{ sector, days, query, categories: active }}
               onSelect={choose}
@@ -317,6 +343,7 @@ function App() {
                       value={days}
                       onChange={(e) => setDays(Number(e.target.value))}
                     >
+                      <option value={0}>All dates (including scheduled)</option>
                       <option value={30}>Last 30 days</option>
                       <option value={7}>Last 7 days</option>
                     </select>
@@ -564,7 +591,7 @@ function App() {
                   <div className="panel-heading">
                     <div>
                       <h2>Activity over time</h2>
-                      <p>Recorded operations by week · current filters</p>
+                      <p>Snapshot weeks · 19 Oct–15 Nov 2026</p>
                     </div>
                     <span className="subtle-badge">{items.length} total</span>
                   </div>
@@ -651,21 +678,19 @@ function App() {
                       <strong>
                         {items.length
                           ? Math.round(
-                              ((items.length - outstanding.length) /
-                                items.length) *
-                                100,
+                              (summarize(items).completed / items.length) * 100,
                             )
                           : 0}
                         %
                       </strong>
                     </div>
                     <progress
-                      value={items.length - outstanding.length}
+                      value={summarize(items).completed}
                       max={items.length || 1}
                     />
                     <small>
-                      {items.length - outstanding.length} of {items.length}{" "}
-                      records in the current selection
+                      {summarize(items).completed} of {items.length} records in
+                      the current selection
                     </small>
                   </div>
                 </div>
@@ -686,8 +711,13 @@ function App() {
         aria-label="Operational record details"
         ref={dialog}
         onClose={() => setSelection(null)}
+        onPointerDown={(e) => {
+          backdropPointer.current = e.target === e.currentTarget;
+        }}
         onClick={(e) => {
-          if (e.target === e.currentTarget) dialog.current?.close();
+          if (backdropPointer.current && e.target === e.currentTarget)
+            dialog.current?.close();
+          backdropPointer.current = false;
         }}
       >
         {selection && (
