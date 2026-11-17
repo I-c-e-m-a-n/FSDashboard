@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { records, teams } from "./data";
 import "./personnel.css";
 type Person = {
@@ -73,6 +73,9 @@ export default function PersonnelManagement() {
     [award, setAward] = useState("Party Award"),
     [course, setCourse] = useState("Community first aid"),
     [courseStatus, setCourseStatus] = useState("Planned");
+  useEffect(() => {
+    if (edit) document.getElementById("personnel-profile")?.scrollIntoView({block:"start"});
+  }, [edit?.id]);
   const selected = people.filter(
     (p) =>
       (stage === "All" || p.stage === stage) &&
@@ -254,7 +257,7 @@ export default function PersonnelManagement() {
         {!selected.length && <p>No matching members.</p>}
       </div>
       {edit && (
-        <div className="personnel-panel" aria-label="Personnel profile">
+        <div className="personnel-panel" id="personnel-profile" aria-label="Personnel profile">
           <h2>Profile · {edit.id}</h2>
           <p>
             Use synthetic details only. Save applies all profile changes
