@@ -51,6 +51,19 @@ try {
     path: "published-evidence/engagement-mobile.png",
     fullPage: true,
   });
+  await page.goto(`${url}#infrastructure`);
+  await page
+    .getByRole("heading", { name: "Infrastructure tracking." })
+    .waitFor();
+  await page.screenshot({
+    path: "published-evidence/infrastructure-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.screenshot({
+    path: "published-evidence/infrastructure-desktop.png",
+    fullPage: true,
+  });
   console.log(
     `Verified HTTP 200, rendered homepage and live map tiles at ${url}`,
   );

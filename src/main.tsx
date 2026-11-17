@@ -1,3 +1,5 @@
+import InfrastructureTracking from "./InfrastructureTracking";
+import { hydrateWorkspace } from "./hydrateWorkspace";
 import EngagementManagement from "./EngagementManagement";
 import { useOperationalRevision } from "./engagementStore";
 import "@fontsource-variable/dm-sans";
@@ -54,25 +56,30 @@ import {
   type RecordItem,
 } from "./data";
 import "./style.css";
+hydrateWorkspace();
 const icons = [Home, Users, Wrench, CalendarDays];
 function App() {
   const revision = useOperationalRevision();
   const backdropPointer = useRef(false);
   const [primary, setPrimary] = useState(
-    location.hash.startsWith("#engagements")
-      ? "engagements"
-      : location.hash.startsWith("#explorer")
-        ? "explorer"
-        : "overview",
+    location.hash.startsWith("#infrastructure")
+      ? "infrastructure"
+      : location.hash.startsWith("#engagements")
+        ? "engagements"
+        : location.hash.startsWith("#explorer")
+          ? "explorer"
+          : "overview",
   );
   useEffect(() => {
     const handler = () =>
       setPrimary(
-        location.hash.startsWith("#engagements")
-          ? "engagements"
-          : location.hash.startsWith("#explorer")
-            ? "explorer"
-            : "overview",
+        location.hash.startsWith("#infrastructure")
+          ? "infrastructure"
+          : location.hash.startsWith("#engagements")
+            ? "engagements"
+            : location.hash.startsWith("#explorer")
+              ? "explorer"
+              : "overview",
       );
     window.addEventListener("hashchange", handler);
     return () => window.removeEventListener("hashchange", handler);
@@ -201,6 +208,14 @@ function App() {
             <CalendarDays size={19} />
             Engagement Management
           </a>
+          <a
+            className={primary === "infrastructure" ? "nav-active" : ""}
+            href="#infrastructure"
+            onClick={() => setNav(false)}
+          >
+            <Wrench size={19} />
+            Infrastructure Tracking
+          </a>
           <a href="#operations" onClick={() => setNav(false)}>
             <MapPinned size={19} />
             Operations map
@@ -262,11 +277,13 @@ function App() {
           <div className="breadcrumb">
             Workspace <ChevronRight size={14} />
             <strong>
-              {primary === "engagements"
-                ? "Engagement Management"
-                : primary === "explorer"
-                  ? "Data Explorer"
-                  : "Overview"}
+              {primary === "infrastructure"
+                ? "Infrastructure Tracking"
+                : primary === "engagements"
+                  ? "Engagement Management"
+                  : primary === "explorer"
+                    ? "Data Explorer"
+                    : "Overview"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -278,7 +295,9 @@ function App() {
           </div>
         </header>
         <main id="main">
-          {primary === "engagements" ? (
+          {primary === "infrastructure" ? (
+            <InfrastructureTracking />
+          ) : primary === "engagements" ? (
             <EngagementManagement />
           ) : primary === "explorer" ? (
             <DataExplorer

@@ -54,6 +54,10 @@ A committed workflow is not proof of publication. Confirm a successful Actions d
 
 ## External services and limitations
 
-OpenStreetMap raster tiles require `tile.openstreetmap.org`. Attribution remains visible. Tile failures display a notice while markers, filters and the record list remain usable. Standard OSM tiles are suitable for this small demonstration; production deployment should choose a tile provider with an appropriate service agreement and review its usage policy. Loading tiles exposes visitor IP addresses and tile coordinates to the provider. There is no analytics, storage of user data or superficial login.
+OpenStreetMap raster tiles require `tile.openstreetmap.org`. Attribution remains visible. Tile failures display a notice while markers, filters and the record list remain usable. Standard OSM tiles are suitable for this small demonstration; production deployment should choose a tile provider with an appropriate service agreement and review its usage policy. Loading tiles exposes visitor IP addresses and tile coordinates to the provider. There is no analytics or superficial login. Engagement and infrastructure demo edits persist in browser-local storage only.
 
 A future internal platform requires authenticated hosting, server-side authorization and privacy controls before connecting operational datasets. Never add real records or credentials to this public repository or Pages bundle.
+
+## Infrastructure Tracking
+
+The fourth primary tab adds a connected infrastructure register, lifecycle editor, map and workload reports. See [Infrastructure Tracking handover](INFRASTRUCTURE_TRACKING.md) for architecture, validation, testing and MVP limitations.

@@ -1,4 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { replaceOperationalLinks } from "./operationalStore";
+import { notifyOperations, useOperationalRevision } from "./operationalStore";
+export { useOperationalRevision } from "./operationalStore";
 import {
   records,
   operations,
@@ -47,7 +49,6 @@ export interface Engagement {
   media: Attachment[];
 }
 const originals = records.map((r) => ({ ...r }));
-const originalOperations = operations.map((r) => ({ ...r }));
 const originalLinks = links.map((l) => ({ ...l }));
 const seeds: Engagement[] = records
   .filter((r) => ["House visits", "Engagements"].includes(r.category))
@@ -68,11 +69,10 @@ const seeds: Engagement[] = records
     media: [],
   }));
 const KEY = "fengshan.engagements.v1";
-let revision = 0;
-const listeners = new Set<() => void>();
+
 let events = structuredClone(seeds);
 export let storageWarning = "";
-export function validateEvent(e: Engagement) {
+export function validateEvent(e: Engagement, checkReferences = true) {
   if (!e.title.trim() || e.title.length > 120)
     throw Error("Enter a title of 1–120 characters.");
   if (
@@ -122,23 +122,17 @@ export function validateEvent(e: Engagement) {
     e.relatedIds.some(
       (id) =>
         id === e.id ||
-        !originals.some(
-          (r) =>
-            r.id === id &&
-            ["Case management", "Infrastructure"].includes(r.category),
-        ),
+        (checkReferences &&
+          !records.some(
+            (r) =>
+              r.id === id &&
+              ["Case management", "Infrastructure"].includes(r.category),
+          )),
     )
   )
     throw Error("Invalid linked operational record.");
 }
 function project() {
-  records.splice(0, records.length, ...originals.map((r) => ({ ...r })));
-  operations.splice(
-    0,
-    operations.length,
-    ...originalOperations.map((r) => ({ ...r })),
-  );
-  links.splice(0, links.length, ...originalLinks.map((l) => ({ ...l })));
   for (const e of events) {
     const l = locations.find((l) => l.id === e.locationId)!,
       p = personnel.find((p) => p.id === e.personId)!,
@@ -187,10 +181,12 @@ function project() {
     const oi = operations.findIndex((x) => x.id === e.id);
     if (oi >= 0) operations.splice(oi, 1);
     operations.push(op as (typeof operations)[number]);
-    for (let n = links.length - 1; n >= 0; n--)
-      if (links[n].fromId === e.id) links.splice(n, 1);
-    e.relatedIds.forEach((id, n) =>
-      links.push({
+  }
+  replaceOperationalLinks(
+    "engagements",
+    events.map((e) => e.id),
+    events.flatMap((e) =>
+      e.relatedIds.map((id, n) => ({
         id: `${e.id}-REL-${n}`,
         fromId: e.id,
         toId: id,
@@ -198,62 +194,59 @@ function project() {
           originalLinks.find((l) => l.fromId === e.id && l.toId === id)?.kind ??
           "Associated record",
         note: "Linked in the synthetic engagement workspace.",
-      }),
-    );
+      })),
+    ),
+  );
+}
+
+export function hydrateEngagements() {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (
+        parsed.version !== 1 ||
+        !Array.isArray(parsed.events) ||
+        parsed.events.length > 100
+      )
+        throw Error();
+      parsed.events.forEach((event: Engagement) => validateEvent(event, false));
+      if (
+        new Set(parsed.events.map((e: Engagement) => e.id)).size !==
+          parsed.events.length ||
+        seeds.some(
+          (s) => !parsed.events.some((e: Engagement) => e.id === s.id),
+        ) ||
+        parsed.events.some(
+          (e: Engagement) =>
+            !seeds.some((s) => s.id === e.id) && !/^ENG-[a-f0-9-]+$/.test(e.id),
+        )
+      )
+        throw Error();
+      events = parsed.events;
+      project();
+    }
+  } catch {
+    storageWarning =
+      "Saved demo data could not be loaded. The original sample is shown; saving replaces the invalid local snapshot.";
   }
 }
-try {
-  const saved = localStorage.getItem(KEY);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    if (
-      parsed.version !== 1 ||
-      !Array.isArray(parsed.events) ||
-      parsed.events.length > 100
-    )
-      throw Error();
-    parsed.events.forEach(validateEvent);
-    if (
-      new Set(parsed.events.map((e: Engagement) => e.id)).size !==
-        parsed.events.length ||
-      seeds.some(
-        (s) => !parsed.events.some((e: Engagement) => e.id === s.id),
-      ) ||
-      parsed.events.some(
-        (e: Engagement) =>
-          !seeds.some((s) => s.id === e.id) && !/^ENG-[a-f0-9-]+$/.test(e.id),
-      )
-    )
-      throw Error();
-    events = parsed.events;
-    project();
+export function reconcileEngagements() {
+  for (const event of events) {
+    const valid = event.relatedIds.filter((id) =>
+      records.some((r) => r.id === id),
+    );
+    if (valid.length !== event.relatedIds.length) {
+      storageWarning =
+        "Unavailable related records were omitted from the local snapshot.";
+      event.relatedIds = valid;
+    }
   }
-} catch {
-  storageWarning =
-    "Saved demo data could not be loaded. The original sample is shown; saving replaces the invalid local snapshot.";
+  project();
 }
 export function useEngagementStore() {
-  useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => revision,
-  );
+  useOperationalRevision();
   return events;
-}
-export function useOperationalRevision() {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => revision,
-  );
 }
 export function saveEngagement(e: Engagement) {
   validateEvent(e);
@@ -271,8 +264,7 @@ export function saveEngagement(e: Engagement) {
   }
   events = next;
   project();
-  revision++;
-  listeners.forEach((l) => l());
+  notifyOperations();
 }
 export function freshEngagement(): Engagement {
   return {
