@@ -1,0 +1,119 @@
+.personnel {
+  color: #142c4e;
+}
+.personnel-notice {
+  background: #eaf2f8;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.personnel-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.personnel-stats article,
+.personnel-panel {
+  background: white;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+  padding: 24px;
+}
+.personnel-stats strong {
+  display: block;
+  font-size: 32px;
+  margin-top: 12px;
+}
+.personnel-panel {
+  margin: 24px 0;
+}
+.personnel-panel h2 {
+  margin: 24px 0 12px;
+}
+.personnel-panel p {
+  line-height: 1.6;
+}
+.personnel-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 20px 0;
+}
+.personnel label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  max-width: 100%;
+}
+.personnel input,
+.personnel select {
+  border: 1px solid #b8c8d9;
+  border-radius: 6px;
+  padding: 10px;
+  background: white;
+  color: #142c4e;
+  max-width: 100%;
+}
+.personnel-charts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.personnel-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 14px 0;
+}
+.personnel-bar span {
+  min-width: 75px;
+  font-size: 13px;
+}
+.personnel-bar meter {
+  width: 100%;
+  accent-color: #356db5;
+}
+.personnel-directory {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.personnel-directory button {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  background: #f6f8fb;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  color: #142c4e;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.personnel-directory button:hover {
+  border-color: #356db5;
+}
+.personnel .button {
+  background: #142c4e;
+  color: white;
+  padding: 11px 16px;
+}
+@media (max-width: 900px) {
+  .personnel-charts,
+  .personnel-directory {
+    grid-template-columns: 1fr;
+  }
+  .personnel-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .personnel-panel {
+    padding: 16px;
+  }
+  .personnel-filters label {
+    width: 100%;
+  }
+}

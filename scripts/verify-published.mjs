@@ -64,6 +64,11 @@ try {
     path: "published-evidence/infrastructure-desktop.png",
     fullPage: true,
   });
+  await page.goto(`${url}#personnel`);
+  await page.getByRole("heading", { name: "Personnel management." }).waitFor();
+  await page.screenshot({path:"published-evidence/personnel-desktop.png",fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:"published-evidence/personnel-mobile.png",fullPage:true});
   console.log(
     `Verified HTTP 200, rendered homepage and live map tiles at ${url}`,
   );

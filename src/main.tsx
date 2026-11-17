@@ -1,3 +1,4 @@
+import PersonnelManagement from "./PersonnelManagement";
 import InfrastructureTracking from "./InfrastructureTracking";
 import { hydrateWorkspace } from "./hydrateWorkspace";
 import EngagementManagement from "./EngagementManagement";
@@ -62,24 +63,28 @@ function App() {
   const revision = useOperationalRevision();
   const backdropPointer = useRef(false);
   const [primary, setPrimary] = useState(
-    location.hash.startsWith("#infrastructure")
-      ? "infrastructure"
-      : location.hash.startsWith("#engagements")
-        ? "engagements"
-        : location.hash.startsWith("#explorer")
-          ? "explorer"
-          : "overview",
+    location.hash.startsWith("#personnel")
+      ? "personnel"
+      : location.hash.startsWith("#infrastructure")
+        ? "infrastructure"
+        : location.hash.startsWith("#engagements")
+          ? "engagements"
+          : location.hash.startsWith("#explorer")
+            ? "explorer"
+            : "overview",
   );
   useEffect(() => {
     const handler = () =>
       setPrimary(
-        location.hash.startsWith("#infrastructure")
-          ? "infrastructure"
-          : location.hash.startsWith("#engagements")
-            ? "engagements"
-            : location.hash.startsWith("#explorer")
-              ? "explorer"
-              : "overview",
+        location.hash.startsWith("#personnel")
+          ? "personnel"
+          : location.hash.startsWith("#infrastructure")
+            ? "infrastructure"
+            : location.hash.startsWith("#engagements")
+              ? "engagements"
+              : location.hash.startsWith("#explorer")
+                ? "explorer"
+                : "overview",
       );
     window.addEventListener("hashchange", handler);
     return () => window.removeEventListener("hashchange", handler);
@@ -216,6 +221,14 @@ function App() {
             <Wrench size={19} />
             Infrastructure Tracking
           </a>
+          <a
+            href="#personnel"
+            className={primary === "personnel" ? "nav-active" : ""}
+            onClick={() => setNav(false)}
+          >
+            <Users size={20} />
+            Personnel Management
+          </a>
           <a href="#operations" onClick={() => setNav(false)}>
             <MapPinned size={19} />
             Operations map
@@ -277,13 +290,15 @@ function App() {
           <div className="breadcrumb">
             Workspace <ChevronRight size={14} />
             <strong>
-              {primary === "infrastructure"
-                ? "Infrastructure Tracking"
-                : primary === "engagements"
-                  ? "Engagement Management"
-                  : primary === "explorer"
-                    ? "Data Explorer"
-                    : "Overview"}
+              {primary === "personnel"
+                ? "Personnel Management"
+                : primary === "infrastructure"
+                  ? "Infrastructure Tracking"
+                  : primary === "engagements"
+                    ? "Engagement Management"
+                    : primary === "explorer"
+                      ? "Data Explorer"
+                      : "Overview"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -295,7 +310,9 @@ function App() {
           </div>
         </header>
         <main id="main">
-          {primary === "infrastructure" ? (
+          {primary === "personnel" ? (
+            <PersonnelManagement />
+          ) : primary === "infrastructure" ? (
             <InfrastructureTracking />
           ) : primary === "engagements" ? (
             <EngagementManagement />
