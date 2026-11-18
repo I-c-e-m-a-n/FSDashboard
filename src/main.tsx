@@ -1,3 +1,4 @@
+const ResidentsCases = React.lazy(() => import("./ResidentsCases"));
 import { people, personnelForOperation } from "./personnelStore";
 import { organisations } from "./referenceData";
 import { reportingDate, reportingLabel } from "./reporting";
@@ -66,28 +67,32 @@ function App() {
   const revision = useOperationalRevision();
   const backdropPointer = useRef(false);
   const [primary, setPrimary] = useState(
-    location.hash.startsWith("#personnel")
-      ? "personnel"
-      : location.hash.startsWith("#infrastructure")
-        ? "infrastructure"
-        : location.hash.startsWith("#engagements")
-          ? "engagements"
-          : location.hash.startsWith("#explorer")
-            ? "explorer"
-            : "overview",
+    location.hash.startsWith("#residents")
+      ? "residents"
+      : location.hash.startsWith("#personnel")
+        ? "personnel"
+        : location.hash.startsWith("#infrastructure")
+          ? "infrastructure"
+          : location.hash.startsWith("#engagements")
+            ? "engagements"
+            : location.hash.startsWith("#explorer")
+              ? "explorer"
+              : "overview",
   );
   useEffect(() => {
     const handler = () =>
       setPrimary(
-        location.hash.startsWith("#personnel")
-          ? "personnel"
-          : location.hash.startsWith("#infrastructure")
-            ? "infrastructure"
-            : location.hash.startsWith("#engagements")
-              ? "engagements"
-              : location.hash.startsWith("#explorer")
-                ? "explorer"
-                : "overview",
+        location.hash.startsWith("#residents")
+          ? "residents"
+          : location.hash.startsWith("#personnel")
+            ? "personnel"
+            : location.hash.startsWith("#infrastructure")
+              ? "infrastructure"
+              : location.hash.startsWith("#engagements")
+                ? "engagements"
+                : location.hash.startsWith("#explorer")
+                  ? "explorer"
+                  : "overview",
       );
     window.addEventListener("hashchange", handler);
     return () => window.removeEventListener("hashchange", handler);
@@ -203,6 +208,14 @@ function App() {
             <Users size={20} />
             Personnel Management
           </a>
+          <a
+            href="#residents"
+            className={primary === "residents" ? "nav-active" : ""}
+            onClick={() => setNav(false)}
+          >
+            <Users size={20} />
+            Residents & Cases
+          </a>
           <a href="#operations" onClick={() => setNav(false)}>
             <MapPinned size={19} />
             Operations map
@@ -264,15 +277,17 @@ function App() {
           <div className="breadcrumb">
             Workspace <ChevronRight size={14} />
             <strong>
-              {primary === "personnel"
-                ? "Personnel Management"
-                : primary === "infrastructure"
-                  ? "Infrastructure Tracking"
-                  : primary === "engagements"
-                    ? "Engagement Management"
-                    : primary === "explorer"
-                      ? "Data Explorer"
-                      : "Overview"}
+              {primary === "residents"
+                ? "Residents & Cases"
+                : primary === "personnel"
+                  ? "Personnel Management"
+                  : primary === "infrastructure"
+                    ? "Infrastructure Tracking"
+                    : primary === "engagements"
+                      ? "Engagement Management"
+                      : primary === "explorer"
+                        ? "Data Explorer"
+                        : "Overview"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -284,7 +299,13 @@ function App() {
           </div>
         </header>
         <main id="main">
-          {primary === "personnel" ? (
+          {primary === "residents" ? (
+            <React.Suspense
+              fallback={<p role="status">Loading resident workspace…</p>}
+            >
+              <ResidentsCases />
+            </React.Suspense>
+          ) : primary === "personnel" ? (
             <PersonnelManagement />
           ) : primary === "infrastructure" ? (
             <InfrastructureTracking />
@@ -817,6 +838,17 @@ function App() {
                 </dd>
               </div>
             </dl>
+            {selection.category === "Case management" && (
+              <button
+                className="button"
+                onClick={() => {
+                  dialog.current?.close();
+                  location.hash = `residents/${selection.id}`;
+                }}
+              >
+                Manage resident case
+              </button>
+            )}
             <h3>Connected records</h3>
             <p>
               Full collection context, including records outside current

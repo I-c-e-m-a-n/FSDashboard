@@ -1,3 +1,5 @@
+> Subsequent extension: [Residents & Cases](RESIDENT_CASE_MANAGEMENT.md) adds household-level data and case lifecycles. The shared organisation directory now contains eight entries.
+
 # Shared architecture review and remediation
 
 ## Scope and review baseline

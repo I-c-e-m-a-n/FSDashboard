@@ -117,7 +117,7 @@ test("expanded collection shares reference data and exposes all workflow categor
   await expect(page.getByTestId("explorer-total")).toHaveText("28");
   await page.getByRole("button", { name: "Data model", exact: true }).click();
   await expect(
-    page.getByText(/18 personnel · 5 organisation entries/),
+    page.getByText(/18 personnel · 8 organisation entries/),
   ).toBeVisible();
   await page.goto("#infrastructure");
   await expect(page.getByTestId("infra-total")).toHaveText("9");

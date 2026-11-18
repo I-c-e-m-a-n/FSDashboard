@@ -63,3 +63,7 @@ A future internal platform requires authenticated hosting, server-side authoriza
 ## Infrastructure Tracking
 
 The fourth primary tab adds a connected infrastructure register, lifecycle editor, map and workload reports. See [Infrastructure Tracking handover](INFRASTRUCTURE_TRACKING.md) for architecture, validation, testing and MVP limitations.
+
+## Residents & Cases
+
+The sixth tab adds synthetic households and family links, house-visit outcomes, MPS and community case lifecycles, referrals, follow-ups, coverage and resolution reporting. See [Residents & Cases handover](RESIDENT_CASE_MANAGEMENT.md) for data semantics, validation and limitations.

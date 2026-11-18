@@ -120,6 +120,21 @@ export const teams: Team[] = sectors.map((sector) => ({
 }));
 export const organisations = [
   {
+    id: "ORG-SSO",
+    name: "Social Service Office",
+    scope: "Synthetic financial and social support referrals",
+  },
+  {
+    id: "ORG-HDB",
+    name: "HDB",
+    scope: "Synthetic housing assistance enquiries",
+  },
+  {
+    id: "ORG-HEALTH",
+    name: "Community health service",
+    scope: "Synthetic care and wellbeing referrals",
+  },
+  {
     id: "ORG-TC",
     name: "Town Council",
     scope: "Estate upkeep and common property",

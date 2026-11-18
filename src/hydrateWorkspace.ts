@@ -1,3 +1,4 @@
+import { hydrateCases, reconcileCases } from "./caseStore";
 import { hydratePersonnel, reconcilePersonnel } from "./personnelStore";
 import {
   hydrateInfrastructure,
@@ -9,7 +10,9 @@ export function hydrateWorkspace() {
   hydratePersonnel();
   hydrateInfrastructure();
   hydrateEngagements();
+  hydrateCases();
   reconcileEngagements();
   reconcileInfrastructure();
   reconcilePersonnel();
+  reconcileCases();
 }
