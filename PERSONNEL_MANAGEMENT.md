@@ -1,3 +1,5 @@
+> Current shared-data architecture and reporting semantics: [Architecture review](ARCHITECTURE_REVIEW.md). Earlier release details below are historical where they differ.
+
 # Personnel Management MVP
 
 Personnel Management adds a synthetic directory, individual profiles, regular/ad-hoc classification, recruitment stages, team membership, awards, learning progression and deployment/attendance records. Charts show age bands, sex and race for the filtered directory; no demographic field is used to rank or assign people.

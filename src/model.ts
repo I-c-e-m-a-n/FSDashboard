@@ -22,6 +22,8 @@ export interface Team {
 interface OperationBase {
   id: string;
   title: string;
+  organisationId?: string;
+  coordinatorId?: string;
   locationId: string;
   teamId: string;
   date: string;

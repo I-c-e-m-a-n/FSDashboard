@@ -1,3 +1,6 @@
+import { people } from "./personnelStore";
+import { organisations } from "./referenceData";
+import { reportingDate, reportingLabel } from "./reporting";
 import { useOperationalRevision } from "./engagementStore";
 import { useMemo, useState } from "react";
 import {
@@ -53,6 +56,7 @@ export default function DataExplorer({
   const revision = useOperationalRevision();
   const [view, setView] = useState<View>("records"),
     [status, setStatus] = useState("All statuses"),
+    [teamId, setTeamId] = useState(""),
     [priority, setPriority] = useState("All priorities"),
     [sort, setSort] = useState<Sort>("date"),
     [ascending, setAscending] = useState(false),
@@ -69,6 +73,7 @@ export default function DataExplorer({
           (r) =>
             (status === "All statuses" ||
               (status === "Overdue" ? isOverdue(r) : r.status === status)) &&
+            (!teamId || r.teamId === teamId) &&
             (priority === "All priorities" || r.priority === priority),
         )
         .sort(
@@ -76,7 +81,7 @@ export default function DataExplorer({
             (a[sort].localeCompare(b[sort]) || a.id.localeCompare(b.id)) *
             (ascending ? 1 : -1),
         ),
-    [scoped, status, priority, sort, ascending],
+    [scoped, status, priority, sort, ascending, teamId],
   );
   const stats = summarize(items),
     connections = connectedLinks(items),
@@ -95,6 +100,7 @@ export default function DataExplorer({
     (r) =>
       (status === "All statuses" ||
         (status === "Overdue" ? isOverdue(r) : r.status === status)) &&
+      (!teamId || r.teamId === teamId) &&
       (priority === "All priorities" || r.priority === priority),
   );
   function change(update: Partial<Filters>) {
@@ -108,6 +114,7 @@ export default function DataExplorer({
       query: "",
       categories: [...categories],
     });
+    setTeamId("");
     setStatus("All statuses");
     setPriority("All priorities");
   }
@@ -117,7 +124,7 @@ export default function DataExplorer({
     setPage(1);
   }
   function exportData() {
-    downloadRecords(items, "fengshan-explorer-2026-11-16.csv");
+    downloadRecords(items, `fengshan-explorer-${reportingDate}.csv`);
     setExported(true);
     setTimeout(() => setExported(false), 3000);
   }
@@ -149,7 +156,7 @@ export default function DataExplorer({
           <span className="pulse" /> SYNTHETIC DATA COLLECTION
         </span>
         <span>
-          Snapshot · 16 Nov 2026 <span className="context-sgt">SGT</span>
+          Snapshot · {reportingLabel} <span className="context-sgt">SGT</span>
         </span>
       </div>
       <div
@@ -204,6 +211,21 @@ export default function DataExplorer({
         </label>
         <div className="explorer-filter-controls">
           <SlidersHorizontal size={16} />
+          <select
+            aria-label="Responsible team filter"
+            value={teamId}
+            onChange={(e) => {
+              setTeamId(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All teams</option>
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
           <label>
             <span className="sr-only">Explorer area</span>
             <select
@@ -607,8 +629,8 @@ export default function DataExplorer({
               <div className="explorer-section-heading">
                 <div>
                   <div className="eyebrow">RECORDED ACTIVITY</div>
-                  <h2>Four weeks in perspective</h2>
-                  <p>Snapshot weeks · 19 Oct–15 Nov 2026</p>
+                  <h2>Activity across the selection</h2>
+                  <p>Date buckets cover all selected records</p>
                 </div>
               </div>
               <div className="explorer-weekly">
@@ -783,6 +805,13 @@ export default function DataExplorer({
           </div>
           <div className="model-columns">
             <div>
+              <h3>Shared reference directories</h3>
+              <p>
+                {people.length} personnel · {organisations.length} organisation
+                entries (including unassigned). Coordinator and deployment IDs
+                resolve to the same personnel directory. Organisation
+                responsibility is separate from branch team ownership.
+              </p>
               <h3>Responsibility directory</h3>
               <p>Each demo team currently covers one illustrative area.</p>
               {teams.map((team) => (
@@ -791,7 +820,8 @@ export default function DataExplorer({
                   key={team.id}
                   onClick={() => {
                     reset();
-                    onChange({ sector: team.sector });
+                    onChange({ sector: "All areas", days: 0 });
+                    setTeamId(team.id);
                     setView("records");
                   }}
                 >
@@ -833,8 +863,8 @@ export default function DataExplorer({
                 <div>
                   <dt>Overdue</dt>
                   <dd>
-                    Not completed, with a due date before 16 November 2026
-                    (SGT).
+                    Active (not completed or cancelled), with a due date before
+                    17 November 2026 (SGT).
                   </dd>
                 </div>
               </dl>

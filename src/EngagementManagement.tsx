@@ -49,7 +49,7 @@ export default function EngagementManagement() {
         (!month || e.date.startsWith(month)) &&
         `${e.title} ${e.type} ${e.id}`
           .toLowerCase()
-          .includes(query.toLowerCase()),
+          .includes(query.trim().toLowerCase()),
     )
     .sort(
       (a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start),

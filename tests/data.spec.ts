@@ -17,10 +17,10 @@ test("synthetic dataset has consistent totals and inclusive date filters", () =>
   const all = filterRecords(base);
   expect(all).toHaveLength(16);
   expect(all.filter(isOutstanding)).toHaveLength(6);
-  expect(all.filter(isOverdue)).toHaveLength(2);
+  expect(all.filter(isOverdue)).toHaveLength(3);
   const recent = filterRecords({ ...base, days: 7 });
-  expect(recent).toHaveLength(8);
-  expect(recent.every((r) => r.date >= "2026-11-10")).toBe(true);
+  expect(recent).toHaveLength(7);
+  expect(recent.every((r) => r.date >= "2026-11-11")).toBe(true);
   expect(
     all
       .filter((r) => r.category === "House visits")

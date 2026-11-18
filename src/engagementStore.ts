@@ -1,3 +1,5 @@
+import { reportingDate } from "./reporting";
+import { upsertOperation, type Operation } from "./data";
 import { replaceOperationalLinks } from "./operationalStore";
 import { notifyOperations, useOperationalRevision } from "./operationalStore";
 export { useOperationalRevision } from "./operationalStore";
@@ -20,11 +22,9 @@ export const engagementTypes = [
   "House visit",
   "Other engagement",
 ] as const;
-export const personnel = [
-  { id: "P-01", name: "Demo coordinator A", teamId: "TEAM-NORTH" },
-  { id: "P-02", name: "Demo coordinator B", teamId: "TEAM-CENTRAL" },
-  { id: "P-03", name: "Demo coordinator C", teamId: "TEAM-SOUTH" },
-];
+export { people as personnel } from "./personnelStore";
+import { people as personnel, legacyCoordinatorIds } from "./personnelStore";
+import { registerOperationalProjection } from "./operationalStore";
 export type EngagementStage =
   "Draft" | "Scheduled" | "In progress" | "Completed" | "Cancelled";
 export interface Attachment {
@@ -60,7 +60,9 @@ const seeds: Engagement[] = records
     start: "09:00",
     end: "11:00",
     locationId: r.locationId,
-    personId: personnel.find((p) => p.teamId === r.teamId)!.id,
+    personId: personnel.find(
+      (p) => p.teamId === r.teamId && p.stage === "Active",
+    )!.id,
     stage: r.status === "Completed" ? "Completed" : "In progress",
     expected: r.units,
     actual: r.units,
@@ -68,6 +70,35 @@ const seeds: Engagement[] = records
     relatedIds: links.filter((l) => l.fromId === r.id).map((l) => l.toId),
     media: [],
   }));
+// Additional historical and scheduled workflows reuse existing places and personnel.
+const extraEvents: Engagement[] = engagementTypes
+  .slice(0, 7)
+  .map((type, i) => ({
+    id: `ENG-SEED-${i + 1}`,
+    title: `Synthetic ${type.toLowerCase()}`,
+    type,
+    date: [
+      "2026-03-21",
+      "2026-10-10",
+      "2026-02-14",
+      "2026-05-10",
+      "2026-06-21",
+      "2026-10-02",
+      "2026-11-21",
+    ][i],
+    start: "09:00",
+    end: "11:00",
+    locationId: locations[i % 3].id,
+    personId: ["SYN-004", "SYN-005", "SYN-006"][i % 3],
+    stage: i === 6 ? "Scheduled" : "Completed",
+    expected: 40 + i * 5,
+    actual: i === 6 ? 0 : 35 + i * 5,
+    notes:
+      "Synthetic workflow example. Dates are illustrative activity dates, not a holiday calendar.",
+    relatedIds: i === 6 ? ["FS-001"] : [],
+    media: [],
+  }));
+seeds.push(...extraEvents);
 const KEY = "fengshan.engagements.v1";
 
 let events = structuredClone(seeds);
@@ -134,21 +165,15 @@ export function validateEvent(e: Engagement, checkReferences = true) {
 }
 function project() {
   for (const e of events) {
-    const l = locations.find((l) => l.id === e.locationId)!,
-      p = personnel.find((p) => p.id === e.personId)!,
-      team = teams.find((t) => t.id === p.teamId)!;
+    const p = personnel.find((p) => p.id === e.personId)!;
     const base = originals.find((r) => r.id === e.id);
-    const r: RecordItem = {
+    const r = {
       id: e.id,
       title: e.title,
       category: e.type === "House visit" ? "House visits" : "Engagements",
-      locationId: l.id,
-      location: l.label,
-      sector: l.sector,
-      lat: l.lat,
-      lng: l.lng,
-      teamId: team.id,
-      owner: team.name,
+      locationId: e.locationId,
+      coordinatorId: e.personId,
+      teamId: p.teamId,
       date: e.date,
       due: base && e.date === base.date ? base.due : e.date,
       status:
@@ -160,13 +185,10 @@ function project() {
               ? "In progress"
               : "Open",
       priority: base?.priority ?? "Routine",
-      units: e.actual,
+      units: ["In progress", "Completed"].includes(e.stage) ? e.actual : 0,
       detail: e.notes,
     };
-    const i = records.findIndex((x) => x.id === e.id);
-    if (i < 0) records.push(r);
-    else records[i] = r;
-    const { location, sector, lat, lng, owner, units, ...core } = r;
+    const { units, ...core } = r;
     const op = {
       ...core,
       category: r.category as "House visits" | "Engagements",
@@ -175,12 +197,10 @@ function project() {
           r.category === "House visits"
             ? ("householdContacts" as const)
             : ("participations" as const),
-        count: e.actual,
+        count: units,
       },
     };
-    const oi = operations.findIndex((x) => x.id === e.id);
-    if (oi >= 0) operations.splice(oi, 1);
-    operations.push(op as (typeof operations)[number]);
+    upsertOperation(op as Operation);
   }
   replaceOperationalLinks(
     "engagements",
@@ -210,20 +230,28 @@ export function hydrateEngagements() {
         parsed.events.length > 100
       )
         throw Error();
-      parsed.events.forEach((event: Engagement) => validateEvent(event, false));
+      parsed.events.forEach((event: Engagement) => {
+        event.personId = legacyCoordinatorIds[event.personId] ?? event.personId;
+        validateEvent(event, false);
+      });
       if (
         new Set(parsed.events.map((e: Engagement) => e.id)).size !==
           parsed.events.length ||
-        seeds.some(
-          (s) => !parsed.events.some((e: Engagement) => e.id === s.id),
-        ) ||
+        seeds
+          .filter((s) => !s.id.startsWith("ENG-SEED-"))
+          .some((s) => !parsed.events.some((e: Engagement) => e.id === s.id)) ||
         parsed.events.some(
           (e: Engagement) =>
             !seeds.some((s) => s.id === e.id) && !/^ENG-[a-f0-9-]+$/.test(e.id),
         )
       )
         throw Error();
-      events = parsed.events;
+      events = [
+        ...parsed.events,
+        ...extraEvents
+          .filter((e) => !parsed.events.some((p: Engagement) => p.id === e.id))
+          .slice(0, Math.max(0, 100 - parsed.events.length)),
+      ];
       project();
     }
   } catch {
@@ -271,7 +299,7 @@ export function freshEngagement(): Engagement {
     id: `ENG-${crypto.randomUUID()}`,
     title: "",
     type: "Other engagement",
-    date: "2026-11-17",
+    date: reportingDate,
     start: "09:00",
     end: "11:00",
     locationId: locations[0].id,
@@ -284,3 +312,5 @@ export function freshEngagement(): Engagement {
     media: [],
   };
 }
+
+registerOperationalProjection("engagements", project);

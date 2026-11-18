@@ -6,7 +6,7 @@ test("infrastructure lifecycle, reports and cross-module persistence", async ({
   await expect(
     page.getByRole("heading", { name: "Infrastructure tracking." }),
   ).toBeVisible();
-  await expect(page.getByTestId("infra-total")).toHaveText("4");
+  await expect(page.getByTestId("infra-total")).toHaveText("9");
   await page.getByRole("button", { name: "Report a matter" }).click();
   const d = page.getByRole("dialog", { name: "Infrastructure matter editor" });
   await d
@@ -85,7 +85,7 @@ test("infrastructure lifecycle, reports and cross-module persistence", async ({
   await page
     .getByLabel("Responsible organisation filter")
     .selectOption("ORG-LTA");
-  await expect(page.getByTestId("infra-total")).toHaveText("1");
+  await expect(page.getByTestId("infra-total")).toHaveText("2");
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export report" }).click();
   expect((await download).suggestedFilename()).toBe(
@@ -126,7 +126,7 @@ test("infrastructure map, reports, editor accessibility and storage failure", as
     ).toBe(true);
   }
   await page.getByRole("button", { name: "Map", exact: true }).click();
-  await expect(page.locator(".map-pin")).toHaveCount(4);
+  await expect(page.locator(".map-pin")).toHaveCount(9);
   await page.getByTitle("Lift landing lighting", { exact: true }).click();
   const d = page.getByRole("dialog");
   await expect(d).toContainText("Lift landing lighting");

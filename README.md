@@ -1,3 +1,5 @@
+> Current shared-data architecture and reporting semantics: [Architecture review](ARCHITECTURE_REVIEW.md). Earlier release details below are historical where they differ.
+
 # Fengshan Community Intelligence
 
 A responsive, map-led **public demonstration** of a community operations homepage. All 16 operational records are fictional. No resident portal, authentication, personal data, or live operational service is included.

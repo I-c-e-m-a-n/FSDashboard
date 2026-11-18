@@ -1,3 +1,6 @@
+import { locations, teams } from "./referenceData";
+export { locations, teams, organisations } from "./referenceData";
+import { reportingDate, inReportingWindow } from "./reporting";
 import {
   categories,
   sectors,
@@ -24,9 +27,7 @@ const rows: [
   Category,
   string,
   string,
-  Sector,
-  number,
-  number,
+  string,
   string,
   string,
   RecordItem["status"],
@@ -37,10 +38,8 @@ const rows: [
   [
     "Infrastructure",
     "Lift landing lighting",
-    "Bedok North Road · Zone N1",
-    "North",
-    1.3359,
-    103.9324,
+    "LOC-001",
+    "TEAM-NORTH",
     "2026-11-15",
     "2026-11-16",
     "Open",
@@ -51,10 +50,8 @@ const rows: [
   [
     "Case management",
     "Assistance follow-up",
-    "Bedok North Street 4 · Zone C2",
-    "Central",
-    1.3317,
-    103.9367,
+    "LOC-002",
+    "TEAM-CENTRAL",
     "2026-11-14",
     "2026-11-15",
     "In progress",
@@ -65,10 +62,8 @@ const rows: [
   [
     "Infrastructure",
     "Covered walkway inspection",
-    "Bedok North Avenue 4 · Zone C1",
-    "Central",
-    1.3338,
-    103.9345,
+    "LOC-003",
+    "TEAM-CENTRAL",
     "2026-11-13",
     "2026-11-15",
     "In progress",
@@ -79,10 +74,8 @@ const rows: [
   [
     "House visits",
     "Neighbourhood listening round",
-    "Bedok North Road · Zone N2",
-    "North",
-    1.3374,
-    103.9352,
+    "LOC-004",
+    "TEAM-NORTH",
     "2026-11-15",
     "2026-11-18",
     "In progress",
@@ -93,10 +86,8 @@ const rows: [
   [
     "House visits",
     "Weekend doorstep visits",
-    "Bedok North Street 4 · Zone C3",
-    "Central",
-    1.3301,
-    103.9391,
+    "LOC-005",
+    "TEAM-CENTRAL",
     "2026-11-14",
     "2026-11-14",
     "Completed",
@@ -107,10 +98,8 @@ const rows: [
   [
     "Engagements",
     "Neighbourhood coffee morning",
-    "Fengshan community area · Zone C4",
-    "Central",
-    1.3314,
-    103.9343,
+    "LOC-006",
+    "TEAM-CENTRAL",
     "2026-11-12",
     "2026-11-12",
     "Completed",
@@ -121,10 +110,8 @@ const rows: [
   [
     "Infrastructure",
     "Playground surface review",
-    "Bedok North Avenue 2 · Zone S1",
-    "South",
-    1.3276,
-    103.9359,
+    "LOC-007",
+    "TEAM-SOUTH",
     "2026-11-11",
     "2026-11-19",
     "Open",
@@ -135,10 +122,8 @@ const rows: [
   [
     "Case management",
     "Community referral check-in",
-    "Bedok North Street 3 · Zone S2",
-    "South",
-    1.3294,
-    103.9325,
+    "LOC-008",
+    "TEAM-SOUTH",
     "2026-11-10",
     "2026-11-17",
     "In progress",
@@ -149,10 +134,8 @@ const rows: [
   [
     "House visits",
     "Evening outreach round",
-    "Bedok North Avenue 2 · Zone S3",
-    "South",
-    1.3267,
-    103.9384,
+    "LOC-009",
+    "TEAM-SOUTH",
     "2026-11-09",
     "2026-11-09",
     "Completed",
@@ -163,10 +146,8 @@ const rows: [
   [
     "Case management",
     "Service guidance follow-up",
-    "Bedok North Road · Zone N3",
-    "North",
-    1.3366,
-    103.9306,
+    "LOC-010",
+    "TEAM-NORTH",
     "2026-11-07",
     "2026-11-09",
     "Completed",
@@ -177,10 +158,8 @@ const rows: [
   [
     "Engagements",
     "Community gardening session",
-    "Bedok North Road · Zone N4",
-    "North",
-    1.3383,
-    103.9371,
+    "LOC-011",
+    "TEAM-NORTH",
     "2026-11-05",
     "2026-11-05",
     "Completed",
@@ -191,10 +170,8 @@ const rows: [
   [
     "House visits",
     "Central neighbourhood outreach",
-    "Bedok North Street 4 · Zone C5",
-    "Central",
-    1.3326,
-    103.9389,
+    "LOC-012",
+    "TEAM-CENTRAL",
     "2026-11-03",
     "2026-11-03",
     "Completed",
@@ -205,10 +182,8 @@ const rows: [
   [
     "Infrastructure",
     "Wayfinding sign replacement",
-    "Bedok North Avenue 2 · Zone S4",
-    "South",
-    1.3281,
-    103.9396,
+    "LOC-013",
+    "TEAM-SOUTH",
     "2026-10-29",
     "2026-11-02",
     "Completed",
@@ -219,10 +194,8 @@ const rows: [
   [
     "Case management",
     "Support service enquiry",
-    "Bedok North Street 4 · Zone C6",
-    "Central",
-    1.3305,
-    103.936,
+    "LOC-014",
+    "TEAM-CENTRAL",
     "2026-10-25",
     "2026-10-29",
     "Completed",
@@ -233,10 +206,8 @@ const rows: [
   [
     "House visits",
     "North outreach round",
-    "Bedok North Road · Zone N5",
-    "North",
-    1.3355,
-    103.9377,
+    "LOC-015",
+    "TEAM-NORTH",
     "2026-10-21",
     "2026-10-21",
     "Completed",
@@ -247,10 +218,8 @@ const rows: [
   [
     "Engagements",
     "Active ageing workshop",
-    "Bedok North Avenue 2 · Zone S5",
-    "South",
-    1.3272,
-    103.9336,
+    "LOC-016",
+    "TEAM-SOUTH",
     "2026-10-19",
     "2026-10-19",
     "Completed",
@@ -259,42 +228,29 @@ const rows: [
     "Thirty-eight participants attended the sample community workshop.",
   ],
 ];
-// Fixture inputs are converted once into normalized entities. Display fields are joined below.
-export const locations: Location[] = rows.map((r, i) => ({
-  id: `LOC-${String(i + 1).padStart(3, "0")}`,
-  label: r[2],
-  sector: r[3],
-  lat: r[4],
-  lng: r[5],
-}));
-export const teams: Team[] = sectors.map((sector) => ({
-  id: `TEAM-${sector.toUpperCase()}`,
-  name: `${sector} coordination team`,
-  sector,
-}));
 export const operations: Operation[] = rows.map((r, i) => {
   const base = {
     id: `FS-${String(i + 1).padStart(3, "0")}`,
     title: r[1],
-    locationId: locations[i].id,
-    teamId: `TEAM-${r[3].toUpperCase()}`,
-    date: r[6],
-    due: r[7],
-    status: r[8],
-    priority: r[9],
-    detail: r[11],
+    locationId: r[2],
+    teamId: r[3],
+    date: r[4],
+    due: r[5],
+    status: r[6],
+    priority: r[7],
+    detail: r[9],
   };
   if (r[0] === "House visits")
     return {
       ...base,
       category: r[0],
-      measure: { kind: "householdContacts", count: r[10] },
+      measure: { kind: "householdContacts", count: r[8] },
     };
   if (r[0] === "Engagements")
     return {
       ...base,
       category: r[0],
-      measure: { kind: "participations", count: r[10] },
+      measure: { kind: "participations", count: r[8] },
     };
   return { ...base, category: r[0], measure: null };
 });
@@ -362,7 +318,7 @@ export const records: RecordItem[] = operations.map((operation) => {
     units: operation.measure?.count ?? 1,
   };
 });
-export const snapshot = "2026-11-16";
+export const snapshot = reportingDate;
 export const colors: Record<Category, string> = {
   "House visits": "#356DB5",
   "Case management": "#8b61ac",
@@ -376,13 +332,10 @@ export interface Filters {
   categories: Category[];
 }
 export function filterRecords(filters: Filters) {
-  const cutoff = new Date(`${snapshot}T00:00:00Z`);
-  cutoff.setUTCDate(cutoff.getUTCDate() - filters.days + 1);
   return records.filter(
     (r) =>
       (filters.sector === "All areas" || r.sector === filters.sector) &&
-      (filters.days === 0 ||
-        (r.date >= cutoff.toISOString().slice(0, 10) && r.date <= snapshot)) &&
+      inReportingWindow(r.date, filters.days) &&
       filters.categories.includes(r.category) &&
       `${r.title} ${r.location} ${r.id}`
         .toLowerCase()
@@ -399,3 +352,26 @@ export const formatDate = (date: string) =>
     month: "short",
     timeZone: "Asia/Singapore",
   }).format(new Date(`${date}T00:00:00Z`));
+
+/** Single write boundary for domain projections. All display fields are derived here. */
+export function upsertOperation(operation: Operation) {
+  const location = locations.find((l) => l.id === operation.locationId);
+  const team = teams.find((t) => t.id === operation.teamId);
+  if (!location || !team)
+    throw Error("Invalid operational location or team reference.");
+  const joined: RecordItem = {
+    ...operation,
+    location: location.label,
+    sector: location.sector,
+    lat: location.lat,
+    lng: location.lng,
+    owner: team.name,
+    units: operation.measure?.count ?? 1,
+  };
+  const i = operations.findIndex((o) => o.id === operation.id);
+  if (i < 0) operations.push(operation);
+  else operations[i] = operation;
+  const j = records.findIndex((r) => r.id === operation.id);
+  if (j < 0) records.push(joined);
+  else records[j] = joined;
+}

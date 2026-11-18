@@ -1,3 +1,5 @@
+> Current shared-data architecture and reporting semantics: [Architecture review](ARCHITECTURE_REVIEW.md). Earlier release details below are historical where they differ.
+
 # Engineering handover
 
 ## Delivered

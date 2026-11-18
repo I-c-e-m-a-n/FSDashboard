@@ -1,3 +1,4 @@
+import { reportingDate, reportingLabel, shiftDate } from "./reporting";
 import {
   categories,
   isOutstanding,
@@ -18,20 +19,30 @@ export function summarize(items: RecordItem[]) {
       ? Math.round((completed / items.length) * 100)
       : 0,
     householdContacts: items
-      .filter((r) => r.category === "House visits")
+      .filter((r) => r.category === "House visits" && r.status !== "Cancelled")
       .reduce((sum, r) => sum + r.units, 0),
     participations: items
-      .filter((r) => r.category === "Engagements")
+      .filter((r) => r.category === "Engagements" && r.status !== "Cancelled")
       .reduce((sum, r) => sum + r.units, 0),
   };
 }
 export function weeklyActivity(items: RecordItem[]) {
-  return [
-    ["19–25 Oct", "2026-10-19", "2026-10-25"],
-    ["26 Oct–1 Nov", "2026-10-26", "2026-11-01"],
-    ["2–8 Nov", "2026-11-02", "2026-11-08"],
-    ["9–15 Nov", "2026-11-09", "2026-11-15"],
-  ].map(([label, start, end]) => ({
+  const end = items.reduce(
+    (latest, r) => (r.date > latest ? r.date : latest),
+    reportingDate,
+  );
+  const start = items.reduce(
+    (earliest, r) => (r.date < earliest ? r.date : earliest),
+    shiftDate(end, -27),
+  );
+  const days = Math.floor((Date.parse(end) - Date.parse(start)) / 86400000) + 1;
+  const width = Math.max(7, Math.ceil(days / 12));
+  return Array.from({ length: Math.ceil(days / width) }, (_, i) => {
+    const from = shiftDate(start, i * width),
+      to = shiftDate(from, width - 1) > end ? end : shiftDate(from, width - 1);
+    const label = `${from.slice(5)}–${to.slice(5)}`;
+    return [label, from, to];
+  }).map(([label, start, end]) => ({
     label,
     values: categories.map(
       (c) =>
@@ -54,7 +65,7 @@ export function csvForRecords(items: RecordItem[]) {
       .replace(/^[=+@-]/, "'$&")
       .replaceAll('"', '""')}"`;
   return [
-    ["Synthetic demonstration — snapshot 16 Nov 2026"],
+    [`Synthetic demonstration — as of ${reportingLabel}`],
     [
       "ID",
       "Dataset",
@@ -86,8 +97,8 @@ export function csvForRecords(items: RecordItem[]) {
       r.status,
       r.priority,
       isOverdue(r) ? "Yes" : "No",
-      r.category === "House visits" ? r.units : "",
-      r.category === "Engagements" ? r.units : "",
+      r.category === "House visits" && r.status !== "Cancelled" ? r.units : "",
+      r.category === "Engagements" && r.status !== "Cancelled" ? r.units : "",
     ]),
   ]
     .map((row) => row.map(cell).join(","))

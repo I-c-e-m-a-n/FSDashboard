@@ -18,7 +18,7 @@ test("normalized relationships and measures are valid", () => {
     householdContacts: 146,
     participations: 119,
     outstanding: 6,
-    overdue: 2,
+    overdue: 3,
   });
 });
 test("explorer filters, pagination, links, export and shared navigation", async ({
@@ -34,7 +34,7 @@ test("explorer filters, pagination, links, export and shared navigation", async 
   await page
     .getByLabel("Record status", { exact: true })
     .selectOption("Overdue");
-  await expect(page.getByTestId("explorer-total")).toContainText("2");
+  await expect(page.getByTestId("explorer-total")).toContainText("3");
   await page.getByRole("button", { name: "Reset all", exact: true }).click();
   await page
     .getByRole("button", { name: "Connections 7", exact: true })

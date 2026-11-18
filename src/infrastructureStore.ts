@@ -1,3 +1,4 @@
+import { upsertOperation } from "./data";
 import { replaceOperationalLinks } from "./operationalStore";
 import {
   records,
@@ -18,29 +19,9 @@ export const infrastructureTypes = [
   "NEA · animals & birds",
   "LTA · parking & transport",
 ] as const;
-export const organisations = [
-  {
-    id: "ORG-TC",
-    name: "Town Council",
-    scope: "Estate upkeep and common property",
-  },
-  {
-    id: "ORG-NEA",
-    name: "NEA",
-    scope: "Environmental and animal/bird-related matters",
-  },
-  { id: "ORG-LTA", name: "LTA", scope: "Transport infrastructure and parking" },
-  {
-    id: "ORG-PARKS",
-    name: "Parks / landscape team",
-    scope: "Green spaces, play areas and vegetation",
-  },
-  {
-    id: "ORG-UNASSIGNED",
-    name: "Unassigned",
-    scope: "Responsibility to be confirmed",
-  },
-];
+export { organisations } from "./referenceData";
+import { organisations } from "./referenceData";
+import { reportingDate, reportingLabel } from "./reporting";
 export const stages = [
   "Reported",
   "Assigned",
@@ -118,6 +99,38 @@ const seed: InfrastructureMatter[] = baseRecords.map((r, i) => ({
     },
   ],
 }));
+const extraMatters: InfrastructureMatter[] = [
+  ["Waste disposal", "ORG-TC", "Assigned"],
+  ["Town Council matters", "ORG-TC", "Awaiting response"],
+  ["Vegetation & landscaping", "ORG-PARKS", "Resolved"],
+  ["NEA · animals & birds", "ORG-NEA", "In progress"],
+  ["LTA · parking & transport", "ORG-LTA", "Cancelled"],
+].map(([type, organisationId, stage], i) => ({
+  id: `INF-SEED-${i + 1}`,
+  title: `Synthetic ${type.toLowerCase()} review`,
+  type,
+  organisationId,
+  locationId: locations[i % 3].id,
+  teamId: teams[i % 3].id,
+  reportedOn: "2026-10-12",
+  dueOn: "2026-11-20",
+  priority: "Routine",
+  stage: stage as InfrastructureStage,
+  progress: stage === "Resolved" ? 100 : stage === "In progress" ? 45 : 0,
+  description:
+    "Synthetic agency coordination workflow, sharing an existing operational location.",
+  relatedIds: ["FS-005"],
+  history: [
+    {
+      id: `INF-SEED-${i + 1}-INITIAL`,
+      at: "2026-11-17T09:00:00+08:00",
+      stage: stage as InfrastructureStage,
+      progress: stage === "Resolved" ? 100 : stage === "In progress" ? 45 : 0,
+      note: "Imported synthetic workflow snapshot.",
+    },
+  ],
+}));
+seed.push(...extraMatters);
 const KEY = "fengshan.infrastructure.v1";
 let matters = structuredClone(seed);
 export let infrastructureWarning = "";
@@ -200,19 +213,13 @@ export function validateMatter(
 }
 function project() {
   for (const m of matters) {
-    const l = locations.find((l) => l.id === m.locationId)!,
-      t = teams.find((t) => t.id === m.teamId)!;
-    const record: RecordItem = {
+    const record = {
       id: m.id,
       title: m.title,
       category: "Infrastructure",
-      locationId: l.id,
-      location: l.label,
-      sector: l.sector,
-      lat: l.lat,
-      lng: l.lng,
-      teamId: t.id,
-      owner: t.name,
+      locationId: m.locationId,
+      organisationId: m.organisationId,
+      teamId: m.teamId,
       date: m.reportedOn,
       due: m.dueOn,
       status:
@@ -227,14 +234,9 @@ function project() {
       units: 1,
       detail: m.description,
     };
-    const i = records.findIndex((r) => r.id === m.id);
-    if (i < 0) records.push(record);
-    else records[i] = record;
-    const { location, sector, lat, lng, owner, units, ...core } = record;
-    const oi = operations.findIndex((r) => r.id === m.id);
+    const { units, ...core } = record;
     const op = { ...core, category: "Infrastructure" as const, measure: null };
-    if (oi < 0) operations.push(op);
-    else operations[oi] = op;
+    upsertOperation(op as import("./model").Operation);
   }
   replaceOperationalLinks(
     "infrastructure",
@@ -268,16 +270,27 @@ export function hydrateInfrastructure() {
       if (
         new Set(data.matters.map((m: InfrastructureMatter) => m.id)).size !==
           data.matters.length ||
-        seed.some(
-          (s) => !data.matters.some((m: InfrastructureMatter) => m.id === s.id),
-        ) ||
+        seed
+          .filter((s) => !s.id.startsWith("INF-SEED-"))
+          .some(
+            (s) =>
+              !data.matters.some((m: InfrastructureMatter) => m.id === s.id),
+          ) ||
         data.matters.some(
           (m: InfrastructureMatter) =>
             !seed.some((s) => s.id === m.id) && !/^INF-[a-f0-9-]+$/.test(m.id),
         )
       )
         throw Error();
-      matters = data.matters;
+      matters = [
+        ...data.matters,
+        ...extraMatters
+          .filter(
+            (m) =>
+              !data.matters.some((p: InfrastructureMatter) => p.id === m.id),
+          )
+          .slice(0, Math.max(0, 100 - data.matters.length)),
+      ];
       project();
     }
   } catch {
@@ -350,7 +363,7 @@ export function freshMatter(): InfrastructureMatter {
     locationId: locations[0].id,
     organisationId: "ORG-UNASSIGNED",
     teamId: teams[0].id,
-    reportedOn: "2026-11-17",
+    reportedOn: reportingDate,
     dueOn: "2026-11-24",
     priority: "Routine",
     stage: "Reported",
@@ -363,14 +376,14 @@ export function freshMatter(): InfrastructureMatter {
 export const isActive = (m: InfrastructureMatter) =>
   !["Resolved", "Closed", "Cancelled"].includes(m.stage);
 export const isMatterOverdue = (m: InfrastructureMatter) =>
-  isActive(m) && m.dueOn < "2026-11-17";
+  isActive(m) && m.dueOn < reportingDate;
 export function infrastructureReport(items: InfrastructureMatter[]) {
   const cell = (s: unknown) =>
     `"${String(s)
       .replace(/^[=+@-]/, "'$&")
       .replaceAll('"', '""')}"`;
   return [
-    ["Synthetic infrastructure report — as of 17 Nov 2026 SGT"],
+    [`Synthetic infrastructure report — as of ${reportingLabel} SGT`],
     [
       "ID",
       "Title",

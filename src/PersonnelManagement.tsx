@@ -1,69 +1,19 @@
+import { reportingDate, reportingLabel } from "./reporting";
 import { useEffect, useState } from "react";
 import { records, teams } from "./data";
 import "./personnel.css";
-type Person = {
-  id: string;
-  age: number;
-  sex: string;
-  race: string;
-  kind: string;
-  stage: string;
-  team: string;
-  awards: string[];
-  training: string[];
-  deployments: { recordId: string; status: string }[];
-};
-const key = "fengshan.personnel.v1";
-const stages = ["Prospect", "Onboarding", "Active", "Inactive"];
-const seed: Person[] = Array.from({ length: 18 }, (_, i) => ({
-  id: `SYN-${String(i + 1).padStart(3, "0")}`,
-  age: 22 + ((i * 7) % 53),
-  sex: ["Female", "Male", "Not stated"][i % 3],
-  race: ["Chinese", "Malay", "Indian", "Other", "Not stated"][i % 5],
-  kind: i % 3 ? "Regular" : "Ad-hoc",
-  stage: stages[i % 7 === 0 ? 0 : i % 7 === 1 ? 1 : 2],
-  team: teams[i % teams.length].id,
-  awards: i % 5 === 0 ? ["Party Award · 2026"] : [],
-  training: i % 2 ? ["Community first aid · Completed · 2026"] : [],
-  deployments:
-    i % 7 > 1
-      ? [
-          {
-            recordId: records[i % records.length].id,
-            status: i % 2 ? "Attended" : "Assigned",
-          },
-        ]
-      : [],
-}));
-function load() {
-  try {
-    const data = JSON.parse(localStorage.getItem(key) || "null");
-    if (!data) return seed;
-    if (
-      !Array.isArray(data) ||
-      data.length > 200 ||
-      data.some(
-        (p) =>
-          !/^SYN-[\w-]+$/.test(p.id) ||
-          !Number.isInteger(p.age) ||
-          p.age < 18 ||
-          p.age > 100 ||
-          !stages.includes(p.stage) ||
-          !teams.some((t) => t.id === p.team) ||
-          !Array.isArray(p.awards) ||
-          !Array.isArray(p.training) ||
-          !Array.isArray(p.deployments),
-      )
-    )
-      throw Error();
-    return data as Person[];
-  } catch {
-    return seed;
-  }
-}
+import {
+  type Person,
+  seed,
+  stages,
+  people,
+  usePersonnel,
+  savePerson,
+  personnelWarning,
+} from "./personnelStore";
 export default function PersonnelManagement() {
-  const [people, setPeople] = useState<Person[]>(load),
-    [query, setQuery] = useState(""),
+  usePersonnel();
+  const [query, setQuery] = useState(""),
     [stage, setStage] = useState("All"),
     [kind, setKind] = useState("All"),
     [edit, setEdit] = useState<Person | null>(null),
@@ -74,15 +24,18 @@ export default function PersonnelManagement() {
     [course, setCourse] = useState("Community first aid"),
     [courseStatus, setCourseStatus] = useState("Planned");
   useEffect(() => {
-    if (edit) document.getElementById("personnel-profile")?.scrollIntoView({block:"start"});
+    if (edit)
+      document
+        .getElementById("personnel-profile")
+        ?.scrollIntoView({ block: "start" });
   }, [edit?.id]);
   const selected = people.filter(
     (p) =>
       (stage === "All" || p.stage === stage) &&
       (kind === "All" || p.kind === kind) &&
-      `${p.id} ${teams.find((t) => t.id === p.team)?.name}`
+      `${p.id} ${teams.find((t) => t.id === p.teamId)?.name}`
         .toLowerCase()
-        .includes(query.toLowerCase()),
+        .includes(query.trim().toLowerCase()),
   );
   function save() {
     if (!edit) return;
@@ -90,13 +43,8 @@ export default function PersonnelManagement() {
       setMessage("Age must be a whole number between 18 and 100.");
       return;
     }
-    const next = people.some((p) => p.id === edit.id)
-      ? people.map((p) => (p.id === edit.id ? edit : p))
-      : [...people, edit];
     try {
-      if (next.length > 200) throw Error();
-      localStorage.setItem(key, JSON.stringify(next));
-      setPeople(next);
+      savePerson(edit);
       setEdit(null);
       setMessage("Synthetic profile saved in this browser.");
     } catch {
@@ -110,7 +58,16 @@ export default function PersonnelManagement() {
   }
   const attended = selected
     .flatMap((p) => p.deployments)
-    .filter((d) => d.status === "Attended").length;
+    .filter(
+      (d) =>
+        d.status === "Attended" &&
+        records.some(
+          (r) =>
+            r.id === d.recordId &&
+            r.date <= reportingDate &&
+            r.status !== "Cancelled",
+        ),
+    ).length;
   return (
     <div className="personnel">
       <div className="page-heading">
@@ -141,6 +98,7 @@ export default function PersonnelManagement() {
         stay in this browser. Ages are as of 17 Nov 2026; no birth dates or
         contact details are collected.
       </p>
+      {personnelWarning && <p role="status">{personnelWarning}</p>}
       {message && <p role="status">{message}</p>}
       <div className="personnel-stats">
         {[
@@ -246,7 +204,7 @@ export default function PersonnelManagement() {
               <span>
                 {p.kind} · {p.stage}
               </span>
-              <span>{teams.find((t) => t.id === p.team)?.name}</span>
+              <span>{teams.find((t) => t.id === p.teamId)?.name}</span>
               <small>
                 {p.deployments.length} deployments · {p.training.length}{" "}
                 learning records · {p.awards.length} awards
@@ -257,7 +215,11 @@ export default function PersonnelManagement() {
         {!selected.length && <p>No matching members.</p>}
       </div>
       {edit && (
-        <div className="personnel-panel" id="personnel-profile" aria-label="Personnel profile">
+        <div
+          className="personnel-panel"
+          id="personnel-profile"
+          aria-label="Personnel profile"
+        >
           <h2>Profile · {edit.id}</h2>
           <p>
             Use synthetic details only. Save applies all profile changes
@@ -297,8 +259,9 @@ export default function PersonnelManagement() {
             <label>
               Team
               <select
-                value={edit.team}
-                onChange={(e) => change("team", e.target.value)}
+                aria-label="Team"
+                value={edit.teamId}
+                onChange={(e) => change("teamId", e.target.value)}
               >
                 {teams.map((t) => (
                   <option value={t.id} key={t.id}>
@@ -370,7 +333,11 @@ export default function PersonnelManagement() {
           <h3>Recognition</h3>
           <label>
             Award
-            <select aria-label="Award" value={award} onChange={(e) => setAward(e.target.value)}>
+            <select
+              aria-label="Award"
+              value={award}
+              onChange={(e) => setAward(e.target.value)}
+            >
               <option>Party Award</option>
               <option>CDC District Achievement Award</option>
             </select>

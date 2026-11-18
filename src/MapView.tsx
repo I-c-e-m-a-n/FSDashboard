@@ -50,6 +50,13 @@ export default function MapView({
   useEffect(() => {
     layer.current?.clearLayers();
     items.forEach((r) => {
+      const colocated = items
+        .filter((other) => other.lat === r.lat && other.lng === r.lng)
+        .sort((a, b) => a.id.localeCompare(b.id));
+      const index = colocated.findIndex((other) => other.id === r.id);
+      const angle = (2 * Math.PI * index) / colocated.length;
+      const radius =
+        colocated.length > 1 ? Math.max(38, colocated.length * 7) : 0;
       const marker = L.marker([r.lat, r.lng], {
         title: r.title,
         autoPanOnFocus: false,
@@ -58,7 +65,10 @@ export default function MapView({
           className: "map-pin-wrap",
           html: `<span class="map-pin ${r.id === selected ? "selected" : ""}" style="--pin:${colors[r.category]}">${r.category === "House visits" ? "H" : r.category === "Case management" ? "C" : r.category === "Infrastructure" ? "I" : "E"}${r.priority === "Urgent" ? "<i></i>" : ""}</span>`,
           iconSize: [32, 32],
-          iconAnchor: [16, 16],
+          iconAnchor: [
+            16 - Math.cos(angle) * radius,
+            16 - Math.sin(angle) * radius,
+          ],
         }),
       });
       marker.on("click", () => onSelect(r));
@@ -104,7 +114,7 @@ export default function MapView({
         </div>
       )}
       <div className="map-note">
-        Illustrative locations · not official boundaries
+        Illustrative locations · shared-location markers spread for selection
       </div>
     </div>
   );

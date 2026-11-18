@@ -1,3 +1,4 @@
+import { reportingDate, reportingLabel } from "./reporting";
 import { useRef, useState, useEffect } from "react";
 import {
   ArrowRight,
@@ -64,7 +65,7 @@ export default function InfrastructureTracking() {
             : m.priority === attention)) &&
         `${m.id} ${m.title} ${m.description} ${locations.find((l) => l.id === m.locationId)?.label}`
           .toLowerCase()
-          .includes(query.toLowerCase()),
+          .includes(query.trim().toLowerCase()),
     )
     .sort((a, b) =>
       sort === "Newest report"
@@ -196,7 +197,7 @@ export default function InfrastructureTracking() {
             <Clock3 size={18} />
           </span>
           <strong>{overdue.length}</strong>
-          <small>As of 17 Nov 2026 · SGT</small>
+          <small>As of {reportingLabel} · SGT</small>
         </div>
         <div>
           <span>
@@ -482,10 +483,9 @@ export default function InfrastructureTracking() {
       <div className="explorer-disclosure">
         <Info size={14} />
         <span>
-          One record across the dashboard. Infrastructure uses an explicit 17
-          Nov 2026 reporting date; Overview’s historical snapshot remains 16
-          Nov. Choose All dates in Overview or Data Explorer to include newer
-          reports.
+          One record across the dashboard. All modules use 17 Nov 2026 as the
+          reporting date. Choose All dates in Overview or Data Explorer to
+          include earlier records and future schedules.
         </span>
       </div>
       <dialog

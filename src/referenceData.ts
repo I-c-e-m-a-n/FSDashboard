@@ -1,0 +1,143 @@
+import { sectors, type Location, type Team } from "./model";
+export const locations: Location[] = [
+  {
+    id: "LOC-001",
+    label: "Bedok North Road \u00b7 Zone N1",
+    sector: "North",
+    lat: 1.3359,
+    lng: 103.9324,
+  },
+  {
+    id: "LOC-002",
+    label: "Bedok North Street 4 \u00b7 Zone C2",
+    sector: "Central",
+    lat: 1.3317,
+    lng: 103.9367,
+  },
+  {
+    id: "LOC-003",
+    label: "Bedok North Avenue 4 \u00b7 Zone C1",
+    sector: "Central",
+    lat: 1.3338,
+    lng: 103.9345,
+  },
+  {
+    id: "LOC-004",
+    label: "Bedok North Road \u00b7 Zone N2",
+    sector: "North",
+    lat: 1.3374,
+    lng: 103.9352,
+  },
+  {
+    id: "LOC-005",
+    label: "Bedok North Street 4 \u00b7 Zone C3",
+    sector: "Central",
+    lat: 1.3301,
+    lng: 103.9391,
+  },
+  {
+    id: "LOC-006",
+    label: "Fengshan community area \u00b7 Zone C4",
+    sector: "Central",
+    lat: 1.3314,
+    lng: 103.9343,
+  },
+  {
+    id: "LOC-007",
+    label: "Bedok North Avenue 2 \u00b7 Zone S1",
+    sector: "South",
+    lat: 1.3276,
+    lng: 103.9359,
+  },
+  {
+    id: "LOC-008",
+    label: "Bedok North Street 3 \u00b7 Zone S2",
+    sector: "South",
+    lat: 1.3294,
+    lng: 103.9325,
+  },
+  {
+    id: "LOC-009",
+    label: "Bedok North Avenue 2 \u00b7 Zone S3",
+    sector: "South",
+    lat: 1.3267,
+    lng: 103.9384,
+  },
+  {
+    id: "LOC-010",
+    label: "Bedok North Road \u00b7 Zone N3",
+    sector: "North",
+    lat: 1.3366,
+    lng: 103.9306,
+  },
+  {
+    id: "LOC-011",
+    label: "Bedok North Road \u00b7 Zone N4",
+    sector: "North",
+    lat: 1.3383,
+    lng: 103.9371,
+  },
+  {
+    id: "LOC-012",
+    label: "Bedok North Street 4 \u00b7 Zone C5",
+    sector: "Central",
+    lat: 1.3326,
+    lng: 103.9389,
+  },
+  {
+    id: "LOC-013",
+    label: "Bedok North Avenue 2 \u00b7 Zone S4",
+    sector: "South",
+    lat: 1.3281,
+    lng: 103.9396,
+  },
+  {
+    id: "LOC-014",
+    label: "Bedok North Street 4 \u00b7 Zone C6",
+    sector: "Central",
+    lat: 1.3305,
+    lng: 103.936,
+  },
+  {
+    id: "LOC-015",
+    label: "Bedok North Road \u00b7 Zone N5",
+    sector: "North",
+    lat: 1.3355,
+    lng: 103.9377,
+  },
+  {
+    id: "LOC-016",
+    label: "Bedok North Avenue 2 \u00b7 Zone S5",
+    sector: "South",
+    lat: 1.3272,
+    lng: 103.9336,
+  },
+];
+export const teams: Team[] = sectors.map((sector) => ({
+  id: `TEAM-${sector.toUpperCase()}`,
+  name: `${sector} coordination team`,
+  sector,
+}));
+export const organisations = [
+  {
+    id: "ORG-TC",
+    name: "Town Council",
+    scope: "Estate upkeep and common property",
+  },
+  {
+    id: "ORG-NEA",
+    name: "NEA",
+    scope: "Environmental and animal/bird-related matters",
+  },
+  { id: "ORG-LTA", name: "LTA", scope: "Transport infrastructure and parking" },
+  {
+    id: "ORG-PARKS",
+    name: "Parks / landscape team",
+    scope: "Green spaces, play areas and vegetation",
+  },
+  {
+    id: "ORG-UNASSIGNED",
+    name: "Unassigned",
+    scope: "Responsibility to be confirmed",
+  },
+];

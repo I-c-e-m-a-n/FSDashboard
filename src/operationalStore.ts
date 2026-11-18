@@ -49,10 +49,24 @@ export function replaceOperationalLinks(
   );
   const seen = new Set<string>();
   const result = candidates.filter((link) => {
-    const key = [link.fromId, link.toId].sort().join("|");
+    const key =
+      link.kind === "Associated record"
+        ? [link.fromId, link.toId].sort().join("|")
+        : `${link.kind}|${link.fromId}|${link.toId}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
   links.splice(0, links.length, ...result);
+}
+
+const projections = new Map<string, () => void>();
+export function registerOperationalProjection(
+  owner: string,
+  project: () => void,
+) {
+  projections.set(owner, project);
+}
+export function refreshOperationalProjections() {
+  projections.forEach((project) => project());
 }

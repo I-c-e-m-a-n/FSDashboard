@@ -30,7 +30,7 @@ test("geographic, period, search and layer filters share one dataset", async ({
   await page.getByLabel("Geographical area").selectOption("South");
   await expect(page.locator(".map-pin")).toHaveCount(5);
   await page.getByLabel("Reporting period").selectOption("7");
-  await expect(page.locator(".map-pin")).toHaveCount(2);
+  await expect(page.locator(".map-pin")).toHaveCount(1);
   await expect(
     page.getByRole("button", { name: "Filter House visits", exact: true }),
   ).toContainText("0");
@@ -63,7 +63,7 @@ test("map markers, export, help and responsive layout work", async ({
   await page.getByLabel("Close record details").click();
   const dl = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export snapshot" }).click();
-  expect((await dl).suggestedFilename()).toBe("fengshan-demo-2026-11-16.csv");
+  expect((await dl).suggestedFilename()).toBe("fengshan-demo-2026-11-17.csv");
   if (testInfo.project.name === "mobile")
     await page.getByLabel("Toggle navigation").click();
   await page.getByRole("button", { name: /About this demonstration/ }).click();

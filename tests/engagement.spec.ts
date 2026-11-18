@@ -75,7 +75,7 @@ test("validation, media, map and accessibility", async ({ page }) => {
   await dialog.getByLabel("Remove synthetic-ui.png").click();
   await dialog.getByRole("button", { name: "Save engagement" }).click();
   await page.getByRole("button", { name: "Map", exact: true }).click();
-  await expect(page.locator(".map-pin")).toHaveCount(9);
+  await expect(page.locator(".map-pin")).toHaveCount(16);
   await page.getByRole("button", { name: "Board", exact: true }).click();
   const { default: AxeBuilder } = await import("@axe-core/playwright");
   const result = await new AxeBuilder({ page })
@@ -108,5 +108,5 @@ test("storage failure preserves unsaved edits without adding a record", async ({
   await d.getByRole("button", { name: "Save engagement" }).click();
   await expect(d.getByRole("alert")).toContainText("not been saved");
   await d.getByRole("button", { name: "Discard changes" }).click();
-  await expect(page.locator(".schedule-event")).toHaveCount(8);
+  await expect(page.locator(".schedule-event")).toHaveCount(15);
 });

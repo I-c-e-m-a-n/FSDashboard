@@ -1,3 +1,4 @@
+import { hydratePersonnel, reconcilePersonnel } from "./personnelStore";
 import {
   hydrateInfrastructure,
   reconcileInfrastructure,
@@ -5,8 +6,10 @@ import {
 import { hydrateEngagements, reconcileEngagements } from "./engagementStore";
 // Two-phase restoration makes cross-module references independent of import order.
 export function hydrateWorkspace() {
+  hydratePersonnel();
   hydrateInfrastructure();
   hydrateEngagements();
   reconcileEngagements();
   reconcileInfrastructure();
+  reconcilePersonnel();
 }

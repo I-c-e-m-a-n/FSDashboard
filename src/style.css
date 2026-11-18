@@ -1549,3 +1549,19 @@ dd {
     transparent calc(50% + 1px)
   );
 }
+
+/* Wide date selections scroll within the chart rather than clipping labels. */
+.chart {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+@media (max-width: 600px) {
+  .filter-left {
+    flex-wrap: wrap;
+  }
+  .filterbar label {
+    max-width: 100%;
+  }
+}

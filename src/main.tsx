@@ -1,3 +1,6 @@
+import { people, personnelForOperation } from "./personnelStore";
+import { organisations } from "./referenceData";
+import { reportingDate, reportingLabel } from "./reporting";
 import PersonnelManagement from "./PersonnelManagement";
 import InfrastructureTracking from "./InfrastructureTracking";
 import { hydrateWorkspace } from "./hydrateWorkspace";
@@ -134,44 +137,15 @@ function App() {
   const toggle = (c: Category) =>
     setActive((a) => (a.includes(c) ? a.filter((x) => x !== c) : [...a, c]));
   function exportCSV() {
-    const cells = (s: unknown) => `"${String(s).replaceAll('"', '""')}"`;
-    const csv = [
-      ["Synthetic demonstration data — snapshot 16 Nov 2026"],
-      [
-        "ID",
-        "Category",
-        "Title",
-        "Area",
-        "Date",
-        "Status",
-        "Priority",
-        "Units",
-      ],
-      ...items.map((r) => [
-        r.id,
-        r.category,
-        r.title,
-        r.sector,
-        r.date,
-        r.status,
-        r.priority,
-        r.units,
-      ]),
-    ]
-      .map((r) => r.map(cells).join(","))
-      .join("\r\n");
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "fengshan-demo-2026-11-16.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadRecords(items, `fengshan-demo-${reportingDate}.csv`);
     setExported(true);
     setTimeout(() => setExported(false), 3000);
   }
   const weekly = weeklyActivity(items);
+  const chartMax = Math.max(
+    2,
+    ...weekly.map((w) => w.values.reduce((a, b) => a + b, 0)),
+  );
   return (
     <>
       <a className="skip" href="#main">
@@ -386,7 +360,7 @@ function App() {
                   </label>
                 </div>
                 <span className="snapshot">
-                  Snapshot: 16 Nov 2026 <span>· SGT</span>
+                  Snapshot: {reportingLabel} <span>· SGT</span>
                 </span>
               </section>
               <section className="stats" aria-label="Operational summary">
@@ -424,7 +398,7 @@ function App() {
                               ? "cases recorded"
                               : i === 2
                                 ? "matters recorded"
-                                : "activities held"}
+                                : "activities recorded"}
                         </span>
                       </div>
                       <div className="stat-bottom">
@@ -437,7 +411,7 @@ function App() {
                           {i === 0
                             ? `${group.filter((r) => r.status === "Completed").length} rounds completed`
                             : i === 3
-                              ? `${group.reduce((s, r) => s + r.units, 0)} participants`
+                              ? `${group.filter((r) => r.status !== "Cancelled").reduce((s, r) => s + r.units, 0)} participants`
                               : `${group.filter((r) => r.status === "Completed").length} completed`}
                         </span>
                         <span>
@@ -534,7 +508,7 @@ function App() {
                     <span>
                       <b>{overdue.length}</b> overdue
                     </span>
-                    <small>As of 16 Nov</small>
+                    <small>As of 17 Nov</small>
                   </div>
                   <div
                     className="tabs"
@@ -627,21 +601,25 @@ function App() {
                   <div className="panel-heading">
                     <div>
                       <h2>Activity over time</h2>
-                      <p>Snapshot weeks · 19 Oct–15 Nov 2026</p>
+                      <p>Date buckets cover all selected records</p>
                     </div>
                     <span className="subtle-badge">{items.length} total</span>
                   </div>
                   <div
                     className="chart"
+                    tabIndex={0}
                     role="img"
-                    aria-label={`Weekly record counts: ${weekly.map((w) => `${w.label}: ${w.values.reduce((a, b) => a + b, 0)}`).join("; ")}`}
+                    aria-label={`Activity record counts: ${weekly.map((w) => `${w.label}: ${w.values.reduce((a, b) => a + b, 0)}`).join("; ")}`}
                   >
                     <div className="chart-axis">
-                      <span>10</span>
-                      <span>5</span>
+                      <span>{chartMax}</span>
+                      <span>{chartMax / 2}</span>
                       <span>0</span>
                     </div>
-                    <div className="chart-plot">
+                    <div
+                      className="chart-plot"
+                      style={{ minWidth: weekly.length * 65 }}
+                    >
                       {weekly.map((w) => (
                         <div className="chart-column" key={w.label}>
                           <div className="stack">
@@ -651,7 +629,7 @@ function App() {
                                   <div
                                     key={i}
                                     style={{
-                                      height: `${v * 10}%`,
+                                      height: `${(v / chartMax) * 100}%`,
                                       background: colors[categories[i]],
                                     }}
                                     title={`${categories[i]}: ${v}`}
@@ -736,7 +714,8 @@ function App() {
                   <strong>FENGSHAN</strong> Community intelligence
                 </span>
                 <span>
-                  Synthetic data · Illustrative sectors · Snapshot 16 Nov 2026
+                  Synthetic data · Illustrative sectors · Snapshot{" "}
+                  {reportingLabel}
                 </span>
               </footer>
             </>
@@ -790,12 +769,14 @@ function App() {
               </div>
               <div>
                 <dt>Recorded</dt>
-                <dd>{formatDate(selection.date)} 2026</dd>
+                <dd>
+                  {formatDate(selection.date)} {selection.date.slice(0, 4)}
+                </dd>
               </div>
               <div>
                 <dt>Due / completion date</dt>
                 <dd>
-                  {formatDate(selection.due)} 2026
+                  {formatDate(selection.due)} {selection.due.slice(0, 4)}
                   {isOverdue(selection) ? " · Overdue" : ""}
                 </dd>
               </div>
@@ -813,6 +794,28 @@ function App() {
                   <dd>{selection.units}</dd>
                 </div>
               )}
+              <div>
+                <dt>Responsible organisation</dt>
+                <dd>
+                  {organisations.find((o) => o.id === selection.organisationId)
+                    ?.name ?? "Not assigned"}
+                </dd>
+              </div>
+              <div>
+                <dt>Coordinator</dt>
+                <dd>
+                  {people.find((p) => p.id === selection.coordinatorId)?.name ??
+                    "Not assigned"}
+                </dd>
+              </div>
+              <div>
+                <dt>Personnel deployments</dt>
+                <dd>
+                  {personnelForOperation(selection.id)
+                    .map((p) => `${p.name}: ${p.status}`)
+                    .join("; ") || "None recorded"}
+                </dd>
+              </div>
             </dl>
             <h3>Connected records</h3>
             <p>
@@ -884,10 +887,10 @@ function App() {
           category. Select a marker or list item for details.
         </p>
         <p>
-          The fixed snapshot is 16 November 2026, Singapore time. “Last 7 days”
-          includes 10–16 November. Due dates before the snapshot are overdue
+          The fixed snapshot is 17 November 2026, Singapore time. “Last 7 days”
+          includes 11–17 November. Due dates before the snapshot are overdue
           unless completed. House visits count households contacted; other cards
-          count records. Weekly bars count records, not people.
+          count records. Activity bars count records, not people.
         </p>
         <h3>Geography and privacy</h3>
         <p>
