@@ -1,3 +1,4 @@
+import OperationalHighlights from "./OperationalHighlights";
 const ResidentsCases = React.lazy(() => import("./ResidentsCases"));
 import { people, personnelForOperation } from "./personnelStore";
 import { organisations } from "./referenceData";
@@ -617,6 +618,7 @@ function App() {
                   </div>
                 </section>
               </div>
+              <OperationalHighlights area={sector} days={days} />
               <section className="lower-grid" id="insights">
                 <div className="panel activity-panel">
                   <div className="panel-heading">

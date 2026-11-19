@@ -67,3 +67,7 @@ The fourth primary tab adds a connected infrastructure register, lifecycle edito
 ## Residents & Cases
 
 The sixth tab adds synthetic households and family links, house-visit outcomes, MPS and community case lifecycles, referrals, follow-ups, coverage and resolution reporting. See [Residents & Cases handover](RESIDENT_CASE_MANAGEMENT.md) for data semantics, validation and limitations.
+
+## Consolidated reports
+
+Data Explorer → Reports provides cross-module analytics, record and relationship drill-downs, and scoped CSV exports. Homepage highlights use the same reporting model. See [Reporting handover](REPORTING_HANDOVER.md) for architecture, metric definitions, scope semantics and verification.

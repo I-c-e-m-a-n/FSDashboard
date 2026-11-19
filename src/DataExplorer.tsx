@@ -1,8 +1,9 @@
+import ConsolidatedReporting from "./ConsolidatedReporting";
 import { people } from "./personnelStore";
 import { organisations } from "./referenceData";
 import { reportingDate, reportingLabel } from "./reporting";
 import { useOperationalRevision } from "./engagementStore";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -42,7 +43,7 @@ import {
   weeklyActivity,
 } from "./analytics";
 import "./explorer.css";
-type View = "records" | "connections" | "model";
+type View = "records" | "connections" | "model" | "reports";
 type Sort = "date" | "title" | "due";
 export default function DataExplorer({
   filters,
@@ -54,7 +55,9 @@ export default function DataExplorer({
   onSelect: (record: RecordItem) => void;
 }) {
   const revision = useOperationalRevision();
-  const [view, setView] = useState<View>("records"),
+  const [view, setView] = useState<View>(
+      location.hash.includes("/reports") ? "reports" : "records",
+    ),
     [status, setStatus] = useState("All statuses"),
     [teamId, setTeamId] = useState(""),
     [priority, setPriority] = useState("All priorities"),
@@ -62,6 +65,15 @@ export default function DataExplorer({
     [ascending, setAscending] = useState(false),
     [page, setPage] = useState(1),
     [exported, setExported] = useState(false);
+  useEffect(() => {
+    const handle = () => {
+      if (location.hash.includes("/reports")) setView("reports");
+      else if (location.hash === "#explorer")
+        setView((v) => (v === "reports" ? "records" : v));
+    };
+    window.addEventListener("hashchange", handle);
+    return () => window.removeEventListener("hashchange", handle);
+  }, []);
   const scoped = useMemo(
     () => filterRecords(filters),
     [filters.sector, filters.days, filters.query, filters.categories, revision],
@@ -130,6 +142,18 @@ export default function DataExplorer({
   }
   const selectedOne =
     filters.categories.length === 1 ? filters.categories[0] : null;
+  if (view === "reports")
+    return (
+      <ConsolidatedReporting
+        initialArea={filters.sector}
+        initialDays={filters.days}
+        onSelect={onSelect}
+        onBack={() => {
+          setView("records");
+          location.hash = "explorer";
+        }}
+      />
+    );
   return (
     <div className="explorer">
       <div className="page-heading">
@@ -335,29 +359,35 @@ export default function DataExplorer({
       </section>
       <div className="explorer-views">
         <div role="group" aria-label="Explorer view">
-          {(["records", "connections", "model"] as View[]).map((v) => (
-            <button
-              key={v}
-              aria-pressed={view === v}
-              onClick={() => setView(v)}
-            >
-              {v === "records" ? (
-                <Layers size={16} />
-              ) : v === "connections" ? (
-                <GitBranch size={16} />
-              ) : (
-                <Database size={16} />
-              )}
-              {
+          {(["records", "connections", "model", "reports"] as View[]).map(
+            (v) => (
+              <button
+                key={v}
+                aria-pressed={view === v}
+                onClick={() => {
+                  setView(v);
+                  if (v === "reports") location.hash = "explorer/reports";
+                }}
+              >
+                {v === "records" ? (
+                  <Layers size={16} />
+                ) : v === "connections" ? (
+                  <GitBranch size={16} />
+                ) : (
+                  <Database size={16} />
+                )}
                 {
-                  records: "Records",
-                  connections: "Connections",
-                  model: "Data model",
-                }[v]
-              }
-              {v === "connections" && <span>{connections.length}</span>}
-            </button>
-          ))}
+                  {
+                    records: "Records",
+                    connections: "Connections",
+                    model: "Data model",
+                    reports: "Reports",
+                  }[v]
+                }
+                {v === "connections" && <span>{connections.length}</span>}
+              </button>
+            ),
+          )}
         </div>
         <span className="selection-note">
           {filters.sector === "All areas"

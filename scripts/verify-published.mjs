@@ -86,6 +86,17 @@ try {
     path: "published-evidence/residents-desktop.png",
     fullPage: true,
   });
+  await page.goto(`${url}#explorer/reports`);
+  await page.getByRole("heading", { name: "Consolidated reports." }).waitFor();
+  await page.screenshot({
+    path: "published-evidence/reports-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "published-evidence/reports-mobile.png",
+    fullPage: true,
+  });
   console.log(
     `Verified HTTP 200, rendered homepage and live map tiles at ${url}`,
   );
